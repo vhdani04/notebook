@@ -1,0 +1,86 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{float}
+
+\definecolor{notecol}{rgb}{0.15,0.35,0.6}
+\definecolor{todocol}{rgb}{0.7,0.3,0.0}
+
+% One decision / measurement per entry, appended at the end in date order:
+%   \entry{ID. Title}{YYYY-MM-DD}{anchor}{Topic}
+% IDs: D decision, M measurement, O open, T tooling. Fields in the order listed below.
+% A new date starts a new day heading; \topicindex lists the entries by topic.
+\makeatletter
+\newcommand{\nb@lastdate}{}
+\def\nb@topics{}
+\newcommand{\entry}[4]{%
+  \def\nb@date{#2}%
+  \ifx\nb@date\nb@lastdate\else
+    \section*{#2}\addcontentsline{toc}{section}{#2}%
+    \global\let\nb@lastdate\nb@date
+  \fi
+  \subsection*{#1 \hfill \small\normalfont\textsc{#4}}%
+  \addcontentsline{toc}{subsection}{#1}\label{#3}%
+  \nb@addtopic{#4}{#1}{#3}}
+\newcommand{\nb@addtopic}[3]{%
+  \@ifundefined{nb@topic@#1}{%
+    \expandafter\gdef\csname nb@topic@#1\endcsname{}%
+    \g@addto@macro\nb@topics{\nb@printtopic{#1}}}{}%
+  \expandafter\g@addto@macro\csname nb@topic@#1\endcsname{\item \hyperref[#3]{#2}}}
+\newcommand{\nb@printtopic}[1]{\item[#1]%
+  \begin{itemize}[nosep]\csname nb@topic@#1\endcsname\end{itemize}}
+\newcommand{\topicindex}{\ifx\nb@topics\@empty\else
+  \section*{Entries by topic}\addcontentsline{toc}{section}{Entries by topic}%
+  \begin{description}[style=nextline]\nb@topics\end{description}\fi}
+\makeatother
+\newcommand{\field}[1]{\par\smallskip\noindent\textbf{#1.}\ }
+\newcommand{\verify}[1]{\textcolor{todocol}{[to verify: #1]}}
+\newcommand{\file}[1]{\texttt{\detokenize{#1}}}
+
+\title{Lab Notebook: ML-Based Floor-Planning for Small-Scale SoC}
+\author{Daniel Vigna}
+\date{Started 2026-10-14}
+
+\begin{document}
+\maketitle
+
+\section*{How this notebook works}
+Every design decision and every measurement gets one entry, written when it happens and appended in date order.
+Each day starts a new heading, and every entry names the topic it touches (see \emph{Entries by topic} at the end).
+The fields of an entry: Question, Options, Method, Result, Decision, Revisit if.
+Claims that are reasoning but not yet measured are marked \verify{like this}.
+Scripts live in \file{scripts/}, raw data in \file{data/}, next to this file (\file{~/papers/notebook/ml-soc} on the VM).
+
+\paragraph{Project.}
+A learning-based floorplanner for a small SoC: a reference block set modeled after an RP2350-class
+microcontroller die (CPU cores, GPU, PCIe, USB PHY, SRAM, flash control, ADC, programmable I/O, analog and clock
+circuitry), with blocks as arbitrary polygons rather than rectangles and per-block power density informed by ASAP7.
+A PyTorch model proposes placements, written to an intermediate format and rendered by a custom viewer.
+Measured block data from the SRAM compute-in-memory macro (the \file{sram-cim} notebook) feeds the block generator.
+
+\tableofcontents
+
+% =====================================================================
+% Entries go here, in date order:
+% \entry{D1. Title}{YYYY-MM-DD}{d1}{Topic}
+% \field{Question} ...
+% \field{Options} ...
+% \field{Method} ...
+% \field{Result} ...
+% \field{Decision} ...
+% \field{Revisit if} ...
+
+% =====================================================================
+% \section*{Open items}
+% \begin{itemize}
+%   \item ...
+% \end{itemize}
+
+\topicindex
+
+\end{document}

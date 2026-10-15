@@ -1,27 +1,25 @@
-# Lab notebook: SRAM compute-in-memory macro in ASAP7
+# Lab notebooks
 
-My research lab notebook for a digital SRAM compute-in-memory (CIM) macro in the ASAP7
-predictive 7 nm PDK, designed and verified with [OpenLayout](https://github.com/vhdani04/OpenLayout)
-(xschem, KLayout, FasterCap, ngspice). Every design decision and every measurement gets one
-entry when it happens: the question, the options, the method (with the script that reproduces
-it), the result, the decision and what would reopen it. Claims that are reasoning but not yet
-measured are marked *to verify*.
+My research lab notebooks, one folder per project. Every design decision and every measurement
+gets one entry when it happens: the question, the options, the method (with the script that
+reproduces it), the result, the decision and what would reopen it. Claims that are reasoning but
+not yet measured are marked *to verify*.
 
-It is rendered live at [danielvigna.com/notebook](https://danielvigna.com/notebook), and the
-latest PDF is attached to the [`latest` release](../../releases/tag/latest) on every push.
+They are rendered live at [danielvigna.com/notebook](https://danielvigna.com/notebook), and each
+project's PDF is attached to the [`latest` release](https://github.com/vhdani04/notebook/releases/tag/latest) on every push.
 
-## Layout
+| Project | Folder | PDF |
+| --- | --- | --- |
+| SRAM compute-in-memory macro in ASAP7, built with [OpenLayout](https://github.com/vhdani04/OpenLayout) | [`sram-cim/`](sram-cim) | [sram-cim.pdf](https://github.com/vhdani04/notebook/releases/download/latest/sram-cim.pdf) |
+| ML-based floor-planning for a small-scale SoC | [`ml-soc/`](ml-soc) | [ml-soc.pdf](https://github.com/vhdani04/notebook/releases/download/latest/ml-soc.pdf) |
 
-| Path | What |
-| --- | --- |
-| `notebook.tex` | The notebook, the single source for the PDF and the web page |
-| `scripts/` | Scripts and testbenches referenced by entries (`tile.py`, `bbox.rb`, `tb_*.sp`) |
-| `data/cells/` | DRC (`.lyrdb`) and LVS (`.lvsdb`) reports for the bitcell, open in KLayout |
-| `data/pex-scaling/` | M1: extracted netlists (`.pex.spice.gz`), ngspice logs, `measurements.csv` |
+Each folder holds `notebook.tex` (the single source for the PDF and the web page), plus
+`scripts/` and `data/` for whatever the entries reference.
 
-## Build the PDF
+## Build a PDF
 
 ```sh
+cd sram-cim
 latexmk -pdf notebook.tex
 ```
 
@@ -29,11 +27,11 @@ Needs a TeX Live with `booktabs`, `enumitem`, `hyperref`, `float` and `xcolor`. 
 
 ## Entry format
 
-The macros are defined at the top of `notebook.tex` and the web page parses them, so keep to them:
+The macros are defined at the top of each `notebook.tex` and the web page parses them, so keep to them.
+Entries are appended at the end, in date order:
 
 ```latex
-\section{Bitcell}
-\entry{D4. 1-bit 10T cell instead of the 2-bit cell}{2026-10-14}{d4}
+\entry{D4. 1-bit 10T cell instead of the 2-bit cell}{2026-10-14}{d4}{Bitcell}
 \field{Question} ...
 \field{Options} ...
 \field{Method} ... \file{scripts/bbox.rb} ...
@@ -42,26 +40,18 @@ The macros are defined at the top of `notebook.tex` and the web page parses them
 \field{Revisit if} ...
 ```
 
-IDs: `D` decision, `M` measurement, `O` open, `T` tooling, numbered in order; the third argument
-is the anchor (`danielvigna.com/notebook#d4`). `\file{}` paths under `scripts/` and `data/`
-become links into this repo. The `Open items` section feeds the "Now" block on the page.
+- **ID** (in the title): `D` decision, `M` measurement, `O` open, `T` tooling, numbered in order.
+- **Date**: `YYYY-MM-DD`. A new date starts a new day heading in the PDF and a new day on the page.
+- **Anchor**: the third argument, e.g. `danielvigna.com/notebook/sram-cim#d4`.
+- **Topic**: the fourth argument, a short label such as `Bitcell` or `Verification`. The PDF lists
+  entries by topic at the end (`\topicindex`), and the page can filter by it.
+- `\file{}` paths under the project's `scripts/` and `data/` become links into this repo.
+- The `\section*{Open items}` list feeds the project's "Now" block on the page.
 
-## Reproducing entries
+## Adding a project
 
-The scripts were run on an Ubuntu VM with OpenLayout installed; paths to the PDK models
-(`~/openlayout/models/asap7_ngspice/7nm_TT.pm`) and to the cell layouts (in my design
-library, not published here) are absolute, so adjust them to your setup.
-
-- **D4, bitcell size**: `klayout -b -r scripts/bbox.rb` prints the bounding box of
-  `SRAMCIMsbc.gds` and its width in gate pitches (54 nm CPP).
-- **M1, flat PEX scaling**:
-  1. Tile the cell: `python3 scripts/tile.py SRAMCIMsbc.gds 1 8 t1x8.gds` (rows, columns;
-     0.54 µm pitch, odd rows mirrored). Needs the `klayout` Python module (`pip install klayout`).
-  2. Extract: `openlayout pex` on each layout (FasterCap 3D, mode rc); the resulting netlists
-     are in `data/pex-scaling/*.pex.spice.gz`.
-  3. Simulate: `ngspice -b scripts/tb_t1x8.sp` (12 ns transient). The testbenches include the
-     netlist from `/tmp/xs/`; point them at the unzipped files instead.
-  4. Wall time, peak memory and element counts are in `data/pex-scaling/measurements.csv`,
-     raw simulator output in `sim_*.log`.
+Copy a folder's `notebook.tex` preamble into a new folder, add the folder to the table above,
+and add it to the project list on the site (`lib/notebook/projects.ts` in the site repo).
+The PDF workflow picks up every `*/notebook.tex` automatically.
 
 ASAP7 is © Arizona State University and Arm under its own license; no PDK files are included here.

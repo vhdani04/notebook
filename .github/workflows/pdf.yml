@@ -1,9 +1,9 @@
-name: Build PDF
+name: Build PDFs
 
 on:
   push:
     branches: [main]
-    paths: ['notebook.tex', '.github/workflows/pdf.yml']
+    paths: ['*/notebook.tex', '.github/workflows/pdf.yml']
   workflow_dispatch:
 
 permissions:
@@ -17,20 +17,24 @@ jobs:
   pdf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Compile notebook.tex
+      - name: Compile every */notebook.tex
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: notebook.tex
+          root_file: '*/notebook.tex'
+          work_in_root_file_dir: true
 
-      - name: Attach to the `latest` release
+      - name: Attach to the `latest` release as <project>.pdf
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if ! gh release view latest >/dev/null 2>&1; then
-            gh release create latest --title "Latest notebook" \
-              --notes "notebook.pdf, rebuilt from main on every push that changes notebook.tex." --latest
+            gh release create latest --title "Latest notebooks" --notes "Building..." --latest
           fi
-          gh release upload latest notebook.pdf --clobber
-          gh release edit latest --notes "notebook.pdf built from ${GITHUB_SHA::7} on $(TZ=America/Chicago date '+%Y-%m-%d %H:%M %Z')."
+          mkdir -p out
+          for pdf in */notebook.pdf; do cp "$pdf" "out/$(dirname "$pdf").pdf"; done
+          gh release upload latest out/*.pdf --clobber
+          # the single-project layout published notebook.pdf; drop it once
+          gh release delete-asset latest notebook.pdf --yes 2>/dev/null || true
+          gh release edit latest --notes "One PDF per project, built from ${GITHUB_SHA::7} on $(TZ=America/Chicago date '+%Y-%m-%d %H:%M %Z'): $(ls out | tr '\n' ' ')"
