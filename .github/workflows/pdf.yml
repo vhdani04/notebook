@@ -1,0 +1,36 @@
+name: Build PDF
+
+on:
+  push:
+    branches: [main]
+    paths: ['notebook.tex', '.github/workflows/pdf.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdf
+  cancel-in-progress: true
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile notebook.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: notebook.tex
+
+      - name: Attach to the `latest` release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view latest >/dev/null 2>&1; then
+            gh release create latest --title "Latest notebook" \
+              --notes "notebook.pdf, rebuilt from main on every push that changes notebook.tex." --latest
+          fi
+          gh release upload latest notebook.pdf --clobber
+          gh release edit latest --notes "notebook.pdf built from ${GITHUB_SHA::7} on $(TZ=America/Chicago date '+%Y-%m-%d %H:%M %Z')."

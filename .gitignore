@@ -1,0 +1,22 @@
+# LaTeX build products (the PDF is built by GitHub Actions and attached to the `latest` release)
+*.aux
+*.log
+!data/**/*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.nav
+*.snm
+*.xdv
+*.pdf
+
+# editors
+*~
+.*.swp
+.DS_Store

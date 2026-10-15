@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{float}
+
+\definecolor{notecol}{rgb}{0.15,0.35,0.6}
+\definecolor{todocol}{rgb}{0.7,0.3,0.0}
+
+% One decision / measurement per entry. Fields in this order.
+\newcommand{\entry}[3]{\subsection*{#1 \hfill \small\normalfont #2}\addcontentsline{toc}{subsection}{#1}\label{#3}}
+\newcommand{\field}[1]{\par\smallskip\noindent\textbf{#1.}\ }
+\newcommand{\verify}[1]{\textcolor{todocol}{[to verify: #1]}}
+\newcommand{\file}[1]{\texttt{\detokenize{#1}}}
+
+\title{Lab Notebook: SRAM Compute-in-Memory Macro in ASAP7}
+\author{Daniel Vigna}
+\date{Started 2026-10-14}
+
+\begin{document}
+\maketitle
+
+\section*{How this notebook works}
+Every design decision and every measurement gets one entry, written when it happens:
+\begin{description}[leftmargin=2em, style=nextline]
+  \item[Question] what was being decided or measured.
+  \item[Options] the alternatives considered.
+  \item[Method] tool, testbench, corner, and the script or file that reproduces it.
+  \item[Result] the numbers.
+  \item[Decision] what was chosen and why.
+  \item[Revisit if] the condition that would reopen it.
+\end{description}
+Claims that are reasoning but not yet measured are marked \verify{like this}.
+Scripts live in \file{scripts/}, raw data in \file{data/}, next to this file (\file{~/papers/notebook} on the VM).
+
+\paragraph{Setup (all entries unless noted).}
+ASAP7 predictive 7\,nm PDK; OpenLayout flow (xschem, KLayout, FasterCap PEX, ngspice with BSIM-CMG);
+SRAM-Vt devices (\file{nmos_sram}, \file{pmos_sram}) in the bitcell; TT models (\file{7nm_TT.pm}), $V_{DD} = 0.7$\,V.
+Gate pitch (CPP) 54\,nm, cell height 270\,nm (one 7.5-track standard-cell row).
+
+\tableofcontents
+
+% =====================================================================
+\section{Architecture}
+
+\entry{D1. Dataflow: weight-stationary, bit-serial input}{2026-10-14}{d1}
+\field{Question} How does an array of 1-bit AND cells compute a multiply?
+\field{Options} (a) 8 parallel input bits per row (bitwise AND only); (b) one input bit per row per cycle, broadcast to all weight bits (bit-serial).
+\field{Method} Reasoning; worked example below.
+\field{Result} Each cell computes $P = \overline{\overline{Q} + \overline{X}} = Q \cdot X$. With (a) a row yields $W_i X_i$ for matching bits only, which is not a product. With (b) a row holding weight $W$ yields the partial product $W \cdot x[t]$ each cycle, and
+\[ W \times X = \sum_{t=0}^{7} 2^t\,(W \cdot x[t]), \qquad \text{MSB first: } \mathrm{Acc} \leftarrow 2\,\mathrm{Acc} + P. \]
+Example (4 bit): $W = 1101_2 = 13$, $X = 0110_2 = 6$: Acc $= 0, 13, 39, 78 = 13 \times 6$.
+With several rows, the $P$ bits of each column are summed first (popcount), giving $\sum_i W_i\,x_i[t]$ per cycle; the same accumulator then forms the dot product $\sum_i W_i X_i$.
+\field{Decision} (b). The weight stays in the SRAM and the input streams past it; a row is one reused row of AND gates of an array multiplier.
+\field{Revisit if} throughput needs more than one input bit per cycle (e.g. 2-bit-serial inputs).
+
+\entry{D2. Start with one 8$\times$1 row, not a full array}{2026-10-14}{d2}
+\field{Question} What is the first block to build and verify?
+\field{Options} (a) the full multi-row array with column adders; (b) a single row of 8 cells plus a shift-accumulate adder (an $8\times8$ bit-serial multiplier).
+\field{Decision} (b). It exercises the cell, the NOR and the accumulator with nothing to add across rows; more rows later only insert per-column adders between the row and the accumulator.
+\field{Revisit if} n/a (staging decision).
+
+% =====================================================================
+\section{Bitcell}
+
+\entry{D3. 2-bit cell placement (b2SRAMsbc), 14 CPP}{2026-10-12}{d3}
+\field{Question} Smallest placement of the 20-device 2-bit CIM cell (two 6T latches, two NOR2).
+\field{Options} Original N/P/N frame, 16 CPP $\times$ 405\,nm; N/P frame at 270\,nm height.
+\field{Method} Euler-path chaining: 6 odd-degree P nets $\Rightarrow$ at least 3 P chains $\Rightarrow$ 14 CPP minimum; every P gate column shares poly with an N gate of the same net. Unchained transistors keep LISD two gate pitches apart (double diffusion break). KLayout DRC.
+\field{Result} 14 CPP $\times$ 270\,nm, $-42\%$ area vs.\ the original, DRC clean; later routed to M3, DRC clean, LVS match. $0.756 \times 0.27\,\mu\text{m} = 0.204\,\mu\text{m}^2$, i.e.\ $0.102\,\mu\text{m}^2$ per bit.
+\field{Decision} Kept as the dense reference point (superseded for now by D4).
+
+\entry{D4. 1-bit 10T cell instead of the 2-bit cell}{2026-10-14}{d4}
+\field{Question} Use the dense 2-bit cell, or a simpler 1-bit cell (6T + one NOR2)?
+\field{Options} (a) b2SRAMsbc: two latches share BL/BL\_Bar, selected by WL[1]/WL[0]; (b) SRAMCIMsbc: one latch, one NOR.
+\field{Method} Layout in OpenLayout; DRC and LVS (\file{data/cells/}); bounding box via \file{scripts/bbox.rb}.
+\field{Result} SRAMCIMsbc: 10 CPP $\times$ 270\,nm $= 0.146\,\mu\text{m}^2$ per bit, DRC clean, LVS match. That is $+43\%$ area per bit vs.\ (a).
+\field{Decision} (b). The 2-bit array's mapping (two weights interleaved per cell row, shared bitlines) made the design hard to reason about; the 1-bit cell keeps one cell = one weight bit while the dataflow is being learned.
+\field{Revisit if} area becomes the main metric, or once the 1-bit design works end to end (the 2-bit cell is "two 1-bit cells stacked", so the architecture carries over).
+
+\entry{D5. NOR2 sizing}{2026-10-14}{d5}
+\field{Question} Fin counts of the NOR's series pMOS and parallel nMOS.
+\field{Options} p1/n2 (as in b2SRAMsbc); 2/2; p2/n1.
+\field{Method} RC reasoning relative to a 1-fin inverter, assuming similar drive per fin for n and p in ASAP7 \verify{per-fin $I_{on}$ of nmos\_sram vs.\ pmos\_sram at TT}.
+\field{Result} Pull-up of two series devices vs.\ worst-case pull-down of one device: p1/n2 $\Rightarrow$ rise $\approx 4\times$ slower than fall; 2/2 $\approx 2\times$; p2/n1 $\approx$ balanced. The slow edge is $P$ rising ($Q=1$, $X=1$), which sets the compute delay. Extra nMOS fins only add gate load on the storage node and on XB.
+\field{Decision} p2/n1 in SRAMCIMsbc.
+\field{Revisit if} the measured rise/fall from the PEX row testbench disagrees, or the N chain forces 2-fin nMOS.
+
+\entry{D6. Latch sizing and read path}{2026-10-14}{d6}
+\field{Question} PU/PG/PD = 1/2/2 fins gives a cell ratio $\beta = 1$; is that safe?
+\field{Result} A classic bitline read with $\beta = 1$ risks read disturb \verify{read SNM at TT}. The CIM cell does not need bitline reads: driving $X = 1$ shows the stored bit on $P$, and the NOR loads the storage node with gate capacitance only.
+\field{Decision} Keep 1/2/2; read through the NOR, no sense amplifiers.
+\field{Revisit if} a conventional SRAM read mode is wanted.
+
+% =====================================================================
+\section{Row}
+
+\entry{D7. XB driver: INVx1}{2026-10-14}{d7}
+\field{Question} Which inverter drives the row's XB line?
+\field{Options} INVxp67 (2+2 fins), INVx1 (3+3), INVx2 (6+6) from \file{asap7sc7p5t_28_R}.
+\field{Method} Load per cell: NOR nMOS 1 fin + pMOS 2 fins = 3 fins; 8 cells = 24 fins, plus $\approx 0.17$\,fF of XB wiring per cell (PEX). Electrical fanout = load / input fins.
+\field{Result} INVx1: FO $\approx 4$--5. INVx2: FO $\approx 2$--2.5 but doubles the load on the stage driving it. The inverter also produces XB from the true input bit, and the 270\,nm standard-cell height matches the bitcell, so it can abut the row.
+\field{Decision} INVx1 \verify{XB edge and P delay with INVx1 vs.\ INVx2 on the 1$\times$8 PEX row}.
+\field{Revisit if} XB fans out to more weights (an $8\times8$ matrix: 64 cells, $\approx$190 fins, FO $\approx 32$ for INVx1 $\Rightarrow$ two-stage buffer, e.g.\ INVx1 $\rightarrow$ INVx4).
+
+\entry{O1. Row schematic status (SRAMCIMsbc\_INT8)}{2026-10-14}{o1}
+WL and BL[7:0]/BLB[7:0] wired (x1 = bit 7). Open: XB tied to one net with an \file{ipin}; P labelled P[7:0] with an \file{opin}. Symbol: XB (left) and P (right) share $y = 10$, which shorts P$_k$ to XB$_{k+1}$ on abutment; plan: XB pass-through on both edges, P on the bottom edge, matched in layout.
+
+% =====================================================================
+\section{Verification}
+
+\entry{M1. Flat PEX and SPICE scaling}{2026-10-14}{m1}
+\field{Question} How large an array can be extracted and simulated flat overnight ($\le 8$\,h)?
+\field{Method} SRAMCIMsbc tiled $1\times8$ and $2\times8$ (\file{scripts/tile.py}: 0.54\,$\mu$m pitch, odd rows mirrored); \file{openlayout pex} (FasterCap 3D); 12\,ns ngspice transient (\file{scripts/tb_*.sp}). VM: 8 vCPU, 10\,GB RAM. Raw: \file{data/pex-scaling/}.
+\field{Result}
+\begin{table}[H]\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Layout & Cells & Conductors & FasterCap (s) & Memory (GB) & Capacitors & ngspice (s) \\
+\midrule
+1 cell        & 1  & 16  & 3.3   & 0.46 & 222    & 0.85 \\
+$1\times8$    & 8  & 107 & 322   & 0.50 & 3\,684  & 37.8 \\
+$2\times8$    & 16 & 197 & 971   & 1.02 & 17\,662 & failed$^\dagger$ \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+$^\dagger$ operating point failed; the tiles were not wired as a real array, so treat as order-of-magnitude.
+\end{table}
+FasterCap time grows roughly as $(\text{conductors})^{1.8\text{--}2.3}$; capacitor count roughly quadratically. Extrapolated: $\approx$1\,300 conductors ($\approx$100 cells) fit in 8\,h at $\approx$6--7\,GB; 640 weights $\times$ 8 bits ($\approx$5\,000 cells, $\approx$30\,000 conductors) would take months and $>$100\,GB.
+\field{Decision} Never extract or simulate the full array flat. Verification ladder: (1) leaf-cell PEX, reused per instance; (2) critical paths with PEX: one row with full WL/XB load, one column with full BL load, the adder's slowest path; (3) function by a behavioral model (Python/Verilog) of the whole array on the full dataset.
+\field{Revisit if} hierarchical PEX lands in OpenLayout (in progress), which changes the cost of step 2.
+
+% =====================================================================
+\section{Tooling}
+
+\entry{T1. OpenLayout/xschem fixes found while designing}{2026-10-14}{t1}
+Symbol pins off the 10 grid (the symbol editor's 2.5 snap) could not be reached by schematic wires: pins now move on 10 when selected, and saving a symbol snaps strays (stubs kept straight, one undo). Copying several objects with \texttt{c} + a click on the selection kept only one: xschem's cadence-compat release trimmed the selection on command clicks. Fixed with xschem patches; OpenLayout commit \file{dc53d6b}.
+
+% =====================================================================
+\section{Open items}
+\begin{itemize}
+  \item Finish the row schematic (O1) and fix the XB/P symbol pins; match in layout.
+  \item Row testbench with PEX: write a weight, toggle XB, check P[7:0]; measure P rise/fall (D5) and the XB driver (D7).
+  \item Shift-accumulate adder from standard cells (16-bit, MSB-first).
+  \item Corners: SS/FF models and $V_{DD}$/temperature sweeps for every delay and energy number.
+  \item Hierarchical PEX results (separate session), then redo M1.
+\end{itemize}
+
+\end{document}

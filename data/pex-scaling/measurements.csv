@@ -1,0 +1,5 @@
+layout,cells,transistors,nets_extracted,fastercap_conductors,fastercap_s,pex_wall_s,pex_maxrss_mb,resistors,capacitors,ngspice_12ns_s,ngspice_note
+SRAMCIMsbc,1,10,16,16,3.3,7.57,452,27,222,0.85,ran (testbench never wrote Q=1 so P stayed low)
+T1x8,8,80,107,107,321.8,323.95,499,181,3684,37.76,ran (same testbench caveat)
+T2x8,16,160,197,197,971.3,973.99,1023,593,17662,,operating point failed (crude tiling: nets not wired as a real array)
+T4x8,32,,,,,,,,,,stopped before finishing (projected ~1.5 h)
