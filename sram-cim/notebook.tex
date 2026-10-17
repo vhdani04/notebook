@@ -7,6 +7,7 @@
 \usepackage{enumitem}
 \usepackage{hyperref}
 \usepackage{float}
+\usepackage{graphicx}
 
 \definecolor{notecol}{rgb}{0.15,0.35,0.6}
 \definecolor{todocol}{rgb}{0.7,0.3,0.0}
@@ -152,10 +153,56 @@ FasterCap time grows roughly as $(\text{conductors})^{1.8\text{--}2.3}$; capacit
 \entry{T1. OpenLayout/xschem fixes found while designing}{2026-10-14}{t1}{Tooling}
 Symbol pins off the 10 grid (the symbol editor's 2.5 snap) could not be reached by schematic wires: pins now move on 10 when selected, and saving a symbol snaps strays (stubs kept straight, one undo). Copying several objects with \texttt{c} + a click on the selection kept only one: xschem's cadence-compat release trimmed the selection on command clicks. Fixed with xschem patches; OpenLayout commit \file{dc53d6b}.
 
+\entry{D8. Back to the 2-bit cell: a 4-row array of 8 INT8 weights}{2026-10-16}{d8}{Architecture}
+\field{Question} With the dataflow understood (D1), which cell and array shape does the signed INT8 design use?
+\field{Options} (a) stay with the 1-bit 10T cell (D4); (b) the 2-bit cell b2SRAMsbc (D3), 8 cells per row, 4 rows.
+\field{Method} Reasoning on the mapping, then the schematic \file{b2SRAMsbc_INT8x8.sch}, netlisted with xschem (32 cells; a script checked that every cell sits on the WL / XB / P / BL nets of its row and bit).
+\field{Result} Each cell holds bit $j$ of two weights (latch 1 and latch 0, sharing BL/BLB). Row $r$ holds $W_{2r+1}$ (WL[$2r{+}1$], XB[$2r{+}1$], P$_{2r+1}$[7:0]) and $W_{2r}$ (WL[$2r$], XB[$2r$], P$_{2r}$[7:0]); 4 rows $\times$ 8 cells = 64 bits = 8 weights, BL[$j$]/BLB[$j$] shared down each column. Every NOR computes in the same cycle, so each bit column delivers 8 product bits per cycle: the column sum is an 8-input popcount (compressor tree), not a single add. The dot product $\sum_{i=0}^{7} W_i X_i$ of 8 signed $8\times8$ terms needs $8+8+3 = 19$ bits (worst case $8 \cdot (-128)(-128) = 2^{17}$). Area: $0.102\,\mu\text{m}^2$ per bit vs.\ $0.146$ for the 10T cell.
+\field{Decision} (b). D4's reason (the 2-bit mapping was hard to reason about) no longer holds, and the 2-bit cell is 30\% smaller per bit.
+\field{Revisit if} the shared bitlines complicate writes, or read disturb (D6) shows up in simulation.
+
+\entry{D9. b2SRAMsbc NOR pMOS: 2 fins}{2026-10-16}{d9}{Bitcell}
+\field{Question} Apply D5 to the 2-bit cell, whose NOR was p1/n2.
+\field{Options} Widen the four NOR pMOS (M13, M14, M17, M18) to 2 fins in the existing 14-CPP placement, or re-place the cell.
+\field{Method} Schematic nfin $1 \rightarrow 2$; in the layout only the PCell parameter \texttt{nfin} of those four instances (second fin on fin row 7, ACTIVE / LISD / SDT down to 189\,nm). Each widened device shares diffusion with a 1-fin latch pMOS, so the ACTIVE steps from 2 to 1 fin at the shared contact (DRC allows it). KLayout DRC, LVS, OpenLayout connectivity check.
+\field{Result} LVS match. The wider LISD came 10\,nm from three LIG gate contacts (LIG--LISD/SDT spacing $\ge 14$\,nm, corner $\ge 15$): two were moved down 5\,nm; the third, wedged between the Q\_bar[1] LISD strap and the new LISD, was trimmed to $177$--$207 \times 144$--$174$\,nm, which keeps its LIG tip-to-side spacing at exactly 25\,nm. DRC clean, LVS match, no shorts or opens. Cell size unchanged (14 CPP $\times$ 270\,nm).
+\field{Decision} 2/2 (p2/n2): the pull-up is no longer the $4\times$ slower edge \verify{P rise/fall on the PEX row}. The nMOS stay at 2 fins because the N row is one 2-fin chain.
+\field{Revisit if} the P rise is still the slow edge after PEX.
+
+\entry{D10. Array assembly: on the fin grid, bus pins}{2026-10-16}{d10}{Array}
+\field{Question} How are the 32 cells placed and pinned?
+\field{Method} Rows alternate unmirrored / mirrored about $x$ so neighbours share a rail (VSS at 270 and 810\,nm, VDD at 540\,nm); 14-CPP column pitch (756\,nm). DRC of the assembled layout. Symbol \file{b2SRAMsbc_INT8x8.sym}, checked by netlisting an instance (96 bus bits, instance and subcircuit in the same order).
+\field{Result} The first placement put the rows at $y = 20, 290, \ldots$\,nm and every fin failed FIN.S.1: the fin grid is absolute (fin centrelines at $13.5 + 27k$\,nm from the layout origin), so a row origin must be a multiple of 27\,nm. Moving the array by $-20$\,nm cleared all 40 violations; every instance was already on the exact pitch. The symbol has 12 bus pins: BLB[7:0], BL[7:0] (top), WL[7:0], X[7:0] (left), P7[7:0] \ldots\ P0[7:0] (right); the schematic's per-bit BL/BLB/WL pins became labels plus bus pins so symbol and schematic match.
+\begin{figure}[H]\centering
+\includegraphics[width=\linewidth]{data/figures/int8x8_layout.png}
+\caption{\file{b2SRAMsbc_INT8x8} layout on 2026-10-16 (routing in progress): 4 rows $\times$ 8 b2SRAMsbc, rows mirrored in pairs to share rails, one DRIVE2b at the right end of each row; $6.26 \times 1.08\,\mu\text{m}$.}
+\end{figure}
+\field{Decision} Row origins on multiples of 27\,nm (the 270\,nm row pitch keeps them there); bus pins only.
+\field{Revisit if} the array is placed inside a larger block: its origin there must also be a multiple of 27\,nm in $y$ (and of 54\,nm in $x$).
+
+\entry{D11. DRIVE2b: one dual-inverter drive cell per row}{2026-10-16}{d11}{Row}
+\field{Question} Each row needs XB for two weights; two separate INVx1 cells (3 CPP each) sat at the row end.
+\field{Options} (a) two INVx1, 6 CPP; (b) one cell, two inverters sharing their VDD / VSS source column, 4 CPP.
+\field{Method} New cell \file{DRIVE2b} (schematic, symbol with A[1:0] / Z[1:0], layout from OpenLayout PCells: inverter 0 mirrored about the shared source column at $x = 108$\,nm, gates at 81 and 135\,nm, outputs Z[0] / Z[1] on M1 at 54 / 162\,nm, input contacts staggered in $y$). Each half keeps the INVx1 sizing (p2/n2, SRAM-Vt). DRC, LVS, connectivity check; DRC of a $4\times4$ block of DRIVE2b in every row mirroring and left/right flip.
+\field{Result} 4 CPP $\times$ 270\,nm $= 0.058\,\mu\text{m}^2$ vs.\ $0.087$ for two INVx1 ($-33\%$, 108\,nm shorter per row). DRC clean, LVS match, and the $4\times4$ block is clean: the cell is symmetric about its source column, so any flip keeps the sources on the shared rails. With two INVx1, flipping one row's inverters left/right had put an output LISD 18\,nm from the next row's source LISD at the shared rail (LISD tip-to-tip $\ge 27$\,nm). Swapped into the array in place of the 8 INVx1 (instances x39, x49, x59, x69).
+\begin{figure}[H]\centering
+\includegraphics[width=0.32\linewidth]{data/figures/drive2b_layout.png}
+\caption{DRIVE2b, 4 CPP $\times$ 270\,nm: VSS rail (bottom) and VDD rail (top), shared source column in the middle, outputs Z[0] / Z[1] on the M1 verticals at the edges, the two staggered input contacts between them.}
+\end{figure}
+\field{Decision} (b). XB[$i$] still drives 8 NORs: $8 \times (2 + 2) = 32$ fins from a 4-fin input, FO $\approx 8$ plus wire \verify{XB edge rate on the PEX row; D7's two-stage option if too slow}.
+\field{Revisit if} the XB edge limits the cycle, or a row needs more than two inputs.
+
+\entry{T2. Tooling notes from assembling the array}{2026-10-16}{t2}{Tooling}
+Editing an OpenLayout layout in a batch script without the \file{OpenLayout_ASAP7} PCell library registered saves the transistors as static cells: LVS still passes, but the connectivity view computes terminals from default PCell parameters and reports false shorts (and chain flags such as \texttt{abut\_left} can silently change). Batch edits must register the library and change PCell parameters, not shapes. M4--M7 are SADP layers on absolute routing tracks: a minimum-width M4 wire (24\,nm) must have its lower edge at an odd multiple of 24\,nm (48\,nm pitch). Wanted next: a pin-placement tool (the array has 96 pin bits; placing them by hand is slow) and lighter KLayout highlighting while moving many instances (it loads the GPU heavily).
+
 % =====================================================================
 \section*{Open items}
 \begin{itemize}
-  \item Finish the row schematic (O1) and fix the XB/P symbol pins; match in layout.
+  \item Route b2SRAMsbc\_INT8x8 (D10, D11): BL/BLB down the columns, P$_k$[7:0] to the bottom edge, WL / X per row; then DRC, LVS, connectivity.
+  \item Decide the reduction and accumulator: one fused carry-save tree (8 P bits per column plus the registered sum / carry fed back, one carry-propagate add at the end) vs.\ popcount, cross-column add and a ripple accumulator. Signed INT8: MSB complement plus a preloaded constant (weights); invert P and add 1 on the input's MSB cycle.
+  \item Bit-exact Python reference model of the 8-weight dot product before the adder schematics.
+  \item Target metric: energy per MAC (TOPS/W) at a stated throughput.
+  \item SRAMCIMsbc\_INT8 still uses INVx1 (D11 replaced it in the 2-bit array).
   \item Row testbench with PEX: write a weight, toggle XB, check P[7:0]; measure P rise/fall (D5) and the XB driver (D7).
   \item Shift-accumulate adder from standard cells (16-bit, MSB-first).
   \item Corners: SS/FF models and $V_{DD}$/temperature sweeps for every delay and energy number.
