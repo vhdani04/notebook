@@ -1,0 +1,6 @@
+# fcopt.py on window w8 of INT8_ARRAY (stuck with -ap), 5 variants side by side, 900 s limit each
+base      GMRES failed   302 s, 2 passes
+pj        converged      352 s, 3 passes vs pj: mean 0.00 %, max 0.00 %
+ps2048    converged      382 s, 3 passes vs pj: mean 0.16 %, max 0.89 %
+galerkin  converged      324 s, 3 passes vs pj: mean 4.89 %, max 6.10 %
+d1        GMRES failed   296 s, 2 passes

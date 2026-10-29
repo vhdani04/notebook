@@ -1,0 +1,6 @@
+# fcopt.py on window w0 of INT8_ARRAY (finishes with -ap), 5 variants side by side
+base      converged      480 s, 3 passes vs base: mean 0.00 %, max 0.00 %
+pj        converged      490 s, 3 passes vs base: mean 0.16 %, max 0.73 %
+ps2048    converged      531 s, 3 passes vs base: mean 0.11 %, max 0.56 %
+galerkin  converged      350 s, 3 passes vs base: mean 5.34 %, max 15.83 %
+d1        converged      508 s, 4 passes vs base: mean 2.98 %, max 16.97 %

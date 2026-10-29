@@ -130,6 +130,42 @@ VSS comes out 7--9\,\% low because the flat solve's substrate plate reaches 0.3\
 \field{Cause} Caps Lock was on in the VM session, so \texttt{c} arrived as \texttt{C}: xschem's ``place arc'' (Ctrl+C: circle). Every lowercase OpenLayout binding (\texttt{x}, \texttt{p}, \texttt{l}, \texttt{r}, \texttt{i}) missed too.
 \field{Fix} A key pressed with Caps Lock is re-issued without it, so the letter's case follows Shift alone. Before the fix a scripted Caps Lock copy added no instance (3 $\to$ 3); after it, one (3 $\to$ 4). Commit \file{fc1e481}.
 
+\entry{T7. Run PEX: a live log; windows the size of the cell, not of its vias}{2026-10-28}{t7}{PEX}
+\field{Symptom} Run PEX on INT8\_ARRAY (the $4\times8$ array of 2-bit cells, 32 cells) froze KLayout with no sign of progress, and \texttt{openlayout pex --jobs 6} answered ``unknown option''.
+\field{Cause} Three separate problems.
+(1) Run PEX called \texttt{openlayout pex} in KLayout's own thread and showed nothing until it ended.
+(2) The command-line wrapper never passed the windowed options (\texttt{--cap}, \texttt{--window}, \texttt{--halo}, \texttt{--jobs}, \texttt{--no-cache}) on; only \texttt{python -m openlayout.pex} accepted them.
+(3) The window grid followed the cell \emph{placed most often}. The array has 64 V3 via cells on top of its 32 bit cells, so the windows came out via-sized: 1\,564 windows of 1\,560 kinds, almost none alike.
+\field{Fix} Run PEX runs in the background with a log window (each step, and each window as its solve finishes, with the time since the start), \emph{Stop} (ends the FasterCap processes too) and \emph{Close}; it solves up to 6 windows at a time. The wrapper passes the options on. The grid follows the cell that covers the most area: INT8\_ARRAY is now 32 windows of 12 kinds. Commit \file{3597317}.
+
+\sloppy
+\entry{M3. FasterCap's GMRES does not converge on the 2-bit array's windows}{2026-10-29}{m3}{PEX}
+\field{Question} The fixed run of INT8\_ARRAY sat at 3 of 12 windows for 16\,h; one FasterCap had used 46 CPU-hours. Slow, or broken?
+\field{Method} The stuck windows' FasterCap inputs, rerun by hand (scripts and outputs in \file{data/pex-gmres/}). Each window has 50--73 conductors and 6\,400--9\,500 panels, against 23--32 conductors for the 10T cell's windows (M1). Geometry checks on the inputs: duplicated panels, edges under 0.5\,nm, faces of two conductors touching, conductors lying in the dielectric interface. Then FasterCap's options, one variant at a time.
+\field{Result} Broken, not slow. In automatic mode (\texttt{-a0.05} with the automatic two-level preconditioner \texttt{-ap}) the first pass returns a nonsense matrix (negative diagonal terms) on the large conductors that cross the dielectric interface, and on the finer meshes that follow GMRES stops converging: residual 0.3--2.7 after 1\,000 iterations against a 0.025 target. The refinement loop then never ends. The geometry checks all came out clean.
+A single solve on a fixed mesh never fails, but it is not accurate: on a window where automatic mode does finish, the totals are 15--27\,\% off on average and up to 164\,\% off on single conductors (\texttt{-m0.5} to \texttt{-m0.2}).
+Automatic mode with other solver options, on a stuck window (w8) and on one where \texttt{-ap} works (w0), 5 runs side by side:
+\begin{table}[H]\centering\footnotesize
+\begin{tabular}{lllll}
+\toprule
+Options & w8 (stuck with \texttt{-ap}) & w8 vs \texttt{-pj} & w0 & w0 vs \texttt{-ap} \\
+\midrule
+\texttt{-ap} (as before) & GMRES fails (302\,s) & -- & 480\,s & -- \\
+\texttt{-pj} (Jacobi) & converges, 352\,s & -- & 490\,s & mean 0.16\,\%, max 0.73\,\% \\
+\texttt{-ps2048} & converges, 382\,s & mean 0.16\,\%, max 0.89\,\% & 531\,s & mean 0.11\,\%, max 0.56\,\% \\
+\texttt{-g} (Galerkin) & converges, 324\,s & mean 4.9\,\%, max 6.1\,\% & 350\,s & mean 5.3\,\%, max 15.8\,\% \\
+\texttt{-d1} & GMRES fails (296\,s) & -- & 508\,s & mean 3.0\,\%, max 17.0\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+With a fallback to \texttt{-pj} after a GMRES failure, the next run of INT8\_ARRAY fell back on every window that finished (w0, w4; w5 had fallen back when the run was stopped), and each failure cost 10--30\,min before the \texttt{-pj} solve began, with 6 solves sharing the VM's 8 vCPUs. On the 10T test array of \file{tests/pex/test_pex.py}, \texttt{-pj} solves each window in 1--2\,s and the totals stay within 4.1\,\% of a flat solve (4.4\,\% before).
+\field{Decision} Windowed solves start with \texttt{-pj}; a GMRES failure switches to the other preconditioner instead of looping. Flat solves (single cells, the library calibration) keep \texttt{-ap}, which their calibration was done with. Galerkin is a different discretization; its 5\,\% offset is not an error of the others. Commit ile{46f78ef}.
+\field{Revisit if} \texttt{-pj} fails to converge on some other layout (the fallback then tries \texttt{-ap} and the log says so). The rerun of INT8\_ARRAY with \texttt{-pj} was started on 2026-10-29; its time and totals go in the next entry.
+
+\entry{O1. Table-based extraction}{2026-10-29}{o1}{PEX}
+A commercial extractor (Quantus, Calibre xRC, StarRC) takes minutes on a block like INT8\_ARRAY because it does not field-solve it: it looks up capacitance tables the foundry characterized offline with field solvers. The same is possible here, with FasterCap as the characterizer. An interconnect table per metal (width, spacing, the layers above and below) is a few thousand mostly 2D solves. ASAP7's fixed grid (54\,nm gates, 27\,nm fins, fixed contact widths) makes the device-level patterns a finite list too. The windowed field solver would stay as the reference and as the mode for critical nets. Not started; it needs a design first, including what the BSIM-CMG model already counts (fringe and overlap capacitance), so that nothing is counted twice.
+
+\fussy
 % =====================================================================
 \section*{Open items}
 \begin{itemize}
@@ -138,6 +174,8 @@ VSS comes out 7--9\,\% low because the flat solve's substrate plate reaches 0.3\
   \item Periphery and routing windows (rarely alike): measure solve count and accuracy on a placed-and-routed block.
   \item Post-layout delays flat vs.\ windowed on a block that switches its outputs.
   \item Release 0.4.0-alpha.3 from the CHANGELOG's \emph{Unreleased} section.
+  \item Table-based extraction (O1): a design, then an interconnect table for M1--M3.
+  \item Give the VM more of the laptop's cores (8 of 20 threads now) for windowed PEX.
 \end{itemize}
 
 \topicindex

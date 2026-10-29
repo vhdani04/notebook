@@ -1,0 +1,4 @@
+auto     171 s  not converging 0  vs auto: mean 0.00 %, max 0.00 %
+m0.5     157 s  not converging 0  vs auto: mean 26.68 %, max 47.93 %
+m0.3     147 s  not converging 0  vs auto: mean 23.12 %, max 136.26 %
+m0.2     139 s  not converging 0  vs auto: mean 14.59 %, max 164.07 %
