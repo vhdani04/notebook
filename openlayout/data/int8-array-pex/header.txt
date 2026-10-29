@@ -1,0 +1,4 @@
+* INT8_ARRAY - parasitic extraction by OpenLayout (openlayout pex, mode rc)
+* layout: /tmp/ol_pex_zb1ayi5c/INT8_ARRAY.gds
+* C: FasterCap 3D field solver (k = 4.6 front end, 3.23 above z = 0.074 um); R: KLayout RNetExtractor, reference sheet / via resistances
+* 640 transistors, 3706 resistors, 46683 capacitors

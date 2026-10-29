@@ -1,0 +1,291 @@
+net,kind,total_fF
+BLB_0_,BLB,0.427
+BLB_1_,BLB,0.4269
+BLB_2_,BLB,0.4269
+BLB_3_,BLB,0.4269
+BLB_4_,BLB,0.4269
+BLB_5_,BLB,0.4269
+BLB_6_,BLB,0.4269
+BLB_7_,BLB,0.4271
+BL_0_,BL,0.4208
+BL_1_,BL,0.4209
+BL_2_,BL,0.4209
+BL_3_,BL,0.4209
+BL_4_,BL,0.4209
+BL_5_,BL,0.4209
+BL_6_,BL,0.4209
+BL_7_,BL,0.4209
+P0_0_,P,0.1703
+P0_1_,P,0.172
+P0_2_,P,0.1719
+P0_3_,P,0.1719
+P0_4_,P,0.1719
+P0_5_,P,0.1719
+P0_6_,P,0.1719
+P0_7_,P,0.1718
+P1_0_,P,0.172
+P1_1_,P,0.172
+P1_2_,P,0.172
+P1_3_,P,0.172
+P1_4_,P,0.172
+P1_5_,P,0.172
+P1_6_,P,0.172
+P1_7_,P,0.1703
+P2_0_,P,0.1746
+P2_1_,P,0.1755
+P2_2_,P,0.1754
+P2_3_,P,0.1754
+P2_4_,P,0.1754
+P2_5_,P,0.1754
+P2_6_,P,0.1754
+P2_7_,P,0.1756
+P3_0_,P,0.175
+P3_1_,P,0.1748
+P3_2_,P,0.1748
+P3_3_,P,0.1748
+P3_4_,P,0.1748
+P3_5_,P,0.1748
+P3_6_,P,0.1748
+P3_7_,P,0.1738
+P4_0_,P,0.1736
+P4_1_,P,0.175
+P4_2_,P,0.1749
+P4_3_,P,0.1749
+P4_4_,P,0.1749
+P4_5_,P,0.1749
+P4_6_,P,0.1749
+P4_7_,P,0.1751
+P5_0_,P,0.175
+P5_1_,P,0.1747
+P5_2_,P,0.1747
+P5_3_,P,0.1747
+P5_4_,P,0.1747
+P5_5_,P,0.1747
+P5_6_,P,0.1747
+P5_7_,P,0.1731
+P6_0_,P,0.1774
+P6_1_,P,0.1786
+P6_2_,P,0.1785
+P6_3_,P,0.1785
+P6_4_,P,0.1785
+P6_5_,P,0.1785
+P6_6_,P,0.1785
+P6_7_,P,0.1785
+P7_0_,P,0.1778
+P7_1_,P,0.1777
+P7_2_,P,0.1777
+P7_3_,P,0.1777
+P7_4_,P,0.1777
+P7_5_,P,0.1777
+P7_6_,P,0.1778
+P7_7_,P,0.1764
+WL_0_,WL,2.7761
+WL_1_,WL,2.7611
+WL_2_,WL,2.8123
+WL_3_,WL,2.7881
+WL_4_,WL,2.8158
+WL_5_,WL,2.7813
+WL_6_,WL,2.804
+WL_7_,WL,2.7727
+XB_0_,XB,2.0702
+XB_1_,XB,2.1178
+XB_2_,XB,2.1031
+XB_3_,XB,2.1531
+XB_4_,XB,2.1305
+XB_5_,XB,2.1337
+XB_6_,XB,2.0884
+XB_7_,XB,2.0977
+net1,power (unstrapped rail),12.5989
+net10,internal (latch Q/QB),0.3896
+net100,internal (NOR series node),0.0597
+net101,internal (NOR series node),0.0599
+net102,power (unstrapped rail),9.2008
+net103,internal (NOR series node),0.0601
+net104,internal (latch Q/QB),0.3959
+net105,internal (latch Q/QB),0.3923
+net106,internal (NOR series node),0.06
+net108,internal (NOR series node),0.0602
+net109,internal (latch Q/QB),0.3971
+net11,internal (latch Q/QB),0.2905
+net110,internal (latch Q/QB),0.392
+net111,internal (NOR series node),0.0599
+net112,internal (NOR series node),0.0602
+net113,internal (latch Q/QB),0.3971
+net114,internal (latch Q/QB),0.392
+net115,internal (NOR series node),0.0599
+net116,internal (NOR series node),0.0602
+net117,internal (latch Q/QB),0.3971
+net118,internal (latch Q/QB),0.392
+net119,internal (NOR series node),0.0599
+net121,internal (NOR series node),0.0602
+net122,internal (latch Q/QB),0.3971
+net123,internal (latch Q/QB),0.392
+net124,internal (NOR series node),0.0599
+net125,internal (NOR series node),0.0602
+net126,internal (latch Q/QB),0.3971
+net127,internal (latch Q/QB),0.392
+net128,internal (NOR series node),0.0599
+net13,internal (latch Q/QB),0.2807
+net130,internal (NOR series node),0.0602
+net131,internal (latch Q/QB),0.3971
+net132,internal (latch Q/QB),0.392
+net133,internal (NOR series node),0.0599
+net135,internal (NOR series node),0.0602
+net136,internal (latch Q/QB),0.3963
+net137,internal (latch Q/QB),0.3919
+net138,internal (NOR series node),0.0597
+net158,internal (latch Q/QB),0.282
+net16,internal (latch Q/QB),0.3896
+net160,internal (latch Q/QB),0.2825
+net162,internal (latch Q/QB),0.2825
+net164,internal (latch Q/QB),0.2825
+net166,internal (latch Q/QB),0.2825
+net167,internal (latch Q/QB),0.2825
+net169,internal (latch Q/QB),0.2825
+net17,internal (latch Q/QB),0.2905
+net171,internal (latch Q/QB),0.2825
+net189,internal (latch Q/QB),0.2957
+net19,internal (latch Q/QB),0.2807
+net191,internal (latch Q/QB),0.296
+net193,internal (latch Q/QB),0.296
+net195,internal (latch Q/QB),0.296
+net196,internal (latch Q/QB),0.296
+net199,internal (latch Q/QB),0.296
+net200,internal (latch Q/QB),0.296
+net201,internal (latch Q/QB),0.2953
+net204,internal (latch Q/QB),0.3924
+net205,internal (latch Q/QB),0.2954
+net206,internal (latch Q/QB),0.2813
+net208,internal (latch Q/QB),0.3924
+net209,internal (latch Q/QB),0.2956
+net210,internal (latch Q/QB),0.2823
+net212,internal (latch Q/QB),0.3924
+net213,internal (latch Q/QB),0.2956
+net214,internal (latch Q/QB),0.2823
+net216,internal (latch Q/QB),0.3924
+net217,internal (latch Q/QB),0.2956
+net219,internal (latch Q/QB),0.3924
+net22,internal (latch Q/QB),0.3896
+net220,internal (latch Q/QB),0.2956
+net221,internal (latch Q/QB),0.2823
+net223,internal (latch Q/QB),0.3924
+net224,internal (latch Q/QB),0.2956
+net225,internal (latch Q/QB),0.2823
+net227,internal (latch Q/QB),0.3924
+net228,internal (latch Q/QB),0.2956
+net229,internal (latch Q/QB),0.2823
+net23,internal (latch Q/QB),0.2905
+net231,internal (latch Q/QB),0.3922
+net232,internal (latch Q/QB),0.2954
+net233,internal (latch Q/QB),0.2814
+net25,internal (latch Q/QB),0.2807
+net252,internal (latch Q/QB),0.3967
+net254,internal (latch Q/QB),0.3975
+net256,internal (latch Q/QB),0.3975
+net258,internal (latch Q/QB),0.3975
+net260,internal (latch Q/QB),0.3975
+net262,internal (latch Q/QB),0.3975
+net264,internal (latch Q/QB),0.3975
+net266,internal (latch Q/QB),0.3975
+net28,internal (latch Q/QB),0.3896
+net286,internal (NOR series node),0.06
+net287,internal (NOR series node),0.0605
+net288,internal (NOR series node),0.0603
+net289,internal (NOR series node),0.0603
+net29,internal (latch Q/QB),0.2905
+net290,internal (NOR series node),0.0603
+net291,internal (NOR series node),0.0603
+net292,internal (NOR series node),0.0603
+net293,internal (latch Q/QB),0.2823
+net294,internal (NOR series node),0.0603
+net295,internal (NOR series node),0.0603
+net296,internal (NOR series node),0.0603
+net297,internal (NOR series node),0.0603
+net298,internal (NOR series node),0.0603
+net299,internal (NOR series node),0.0603
+net300,internal (NOR series node),0.0603
+net301,internal (NOR series node),0.0602
+net302,internal (NOR series node),0.0604
+net31,internal (latch Q/QB),0.2807
+net319,internal (NOR series node),0.0604
+net320,internal (latch Q/QB),0.3949
+net321,internal (latch Q/QB),0.391
+net322,internal (NOR series node),0.0599
+net323,internal (NOR series node),0.0602
+net324,internal (latch Q/QB),0.3954
+net325,internal (latch Q/QB),0.3912
+net326,internal (NOR series node),0.06
+net328,internal (NOR series node),0.0602
+net329,internal (latch Q/QB),0.3954
+net330,internal (latch Q/QB),0.3912
+net331,internal (NOR series node),0.06
+net332,internal (NOR series node),0.0602
+net333,internal (latch Q/QB),0.3954
+net334,internal (latch Q/QB),0.3912
+net335,internal (NOR series node),0.06
+net337,internal (NOR series node),0.0602
+net338,internal (latch Q/QB),0.3954
+net339,internal (latch Q/QB),0.3912
+net34,internal (latch Q/QB),0.3896
+net340,internal (NOR series node),0.06
+net342,internal (NOR series node),0.0602
+net343,internal (latch Q/QB),0.3954
+net344,internal (latch Q/QB),0.3912
+net345,internal (NOR series node),0.06
+net346,internal (NOR series node),0.0602
+net347,internal (latch Q/QB),0.3954
+net348,internal (latch Q/QB),0.3912
+net349,internal (NOR series node),0.06
+net35,internal (latch Q/QB),0.2905
+net352,internal (NOR series node),0.0601
+net353,internal (latch Q/QB),0.3947
+net354,internal (latch Q/QB),0.3907
+net355,internal (NOR series node),0.0596
+net361,internal (latch Q/QB),0.2805
+net363,internal (latch Q/QB),0.2812
+net364,internal (latch Q/QB),0.2812
+net366,internal (latch Q/QB),0.2812
+net368,internal (latch Q/QB),0.2812
+net37,internal (latch Q/QB),0.2807
+net370,internal (latch Q/QB),0.2812
+net371,internal (latch Q/QB),0.2812
+net372,internal (latch Q/QB),0.2802
+net390,internal (latch Q/QB),0.2924
+net392,internal (latch Q/QB),0.2924
+net394,internal (latch Q/QB),0.2924
+net396,internal (latch Q/QB),0.2924
+net397,internal (latch Q/QB),0.2924
+net398,internal (latch Q/QB),0.2924
+net40,internal (latch Q/QB),0.3896
+net401,internal (latch Q/QB),0.2924
+net402,internal (latch Q/QB),0.2923
+net41,internal (latch Q/QB),0.2905
+net43,internal (latch Q/QB),0.2807
+net45,internal (latch Q/QB),0.3885
+net46,internal (latch Q/QB),0.2901
+net48,internal (latch Q/QB),0.2786
+net5,internal (latch Q/QB),0.3892
+net52,internal (latch Q/QB),0.3933
+net54,internal (latch Q/QB),0.3926
+net56,internal (latch Q/QB),0.3926
+net58,internal (latch Q/QB),0.3926
+net6,internal (latch Q/QB),0.29
+net60,internal (latch Q/QB),0.3926
+net62,internal (latch Q/QB),0.3926
+net64,internal (latch Q/QB),0.3926
+net66,internal (latch Q/QB),0.3931
+net8,internal (latch Q/QB),0.2787
+net86,internal (NOR series node),0.0597
+net87,internal (NOR series node),0.0604
+net88,internal (NOR series node),0.0597
+net89,internal (NOR series node),0.0604
+net90,internal (NOR series node),0.0597
+net91,internal (NOR series node),0.0604
+net92,internal (NOR series node),0.0597
+net93,internal (NOR series node),0.0604
+net94,internal (NOR series node),0.0597
+net95,internal (NOR series node),0.0604
+net96,internal (NOR series node),0.0597
+net97,internal (NOR series node),0.0604
+net98,internal (NOR series node),0.0597
+net99,internal (NOR series node),0.0603

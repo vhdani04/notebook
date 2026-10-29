@@ -165,6 +165,30 @@ With a fallback to \texttt{-pj} after a GMRES failure, the next run of INT8\_ARR
 \entry{O1. Table-based extraction}{2026-10-29}{o1}{PEX}
 A commercial extractor (Quantus, Calibre xRC, StarRC) takes minutes on a block like INT8\_ARRAY because it does not field-solve it: it looks up capacitance tables the foundry characterized offline with field solvers. The same is possible here, with FasterCap as the characterizer. An interconnect table per metal (width, spacing, the layers above and below) is a few thousand mostly 2D solves. ASAP7's fixed grid (54\,nm gates, 27\,nm fins, fixed contact widths) makes the device-level patterns a finite list too. The windowed field solver would stay as the reference and as the mode for critical nets. Not started; it needs a design first, including what the BSIM-CMG model already counts (fringe and overlap capacitance), so that nothing is counted twice.
 
+\entry{M4. INT8\_ARRAY extracted: 19 min, and what each net carries}{2026-10-29}{m4}{PEX}
+\field{Question} With windowed solves on \texttt{-pj} (M3), how long does the $4\times8$ array of 2-bit cells take, and what capacitance does each kind of net see?
+\field{Method} OpenLayout\,\textgreater\,Run PEX on INT8\_ARRAY (32 b2SRAMsbc cells, 640 transistors; P pins on free M4 tracks, VDD/VSS not yet strapped), mode rc, 6 windows at a time on the VM's 8 vCPUs. Totals per net from the netlist's header (\file{data/int8-array-pex/totals.csv}; the netlist: \file{data/int8-array-pex/INT8_ARRAY.pex.spice.gz}).
+\field{Result} 18\,min 49\,s from start to netlist. 6 kinds of window were solved, all converging on \texttt{-pj} at the first try in 13--19\,min each; the others came from the cache of the two earlier runs (3 solved with \texttt{-ap}, 2 with \texttt{-pj} after \texttt{-ap} failed). The netlist has 3\,706 resistors and 46\,683 capacitors.
+\begin{table}[H]\centering\footnotesize
+\begin{tabular}{lrrrp{5.6cm}}
+\toprule
+Net & Count & Total (fF) & Per cell (fF) & What it spans \\
+\midrule
+WL & 8 & 2.76--2.82 & 0.35 & a row: 8 cells, one access pair per cell, M2 across 6\,$\mu$m \\
+XB & 8 & 2.07--2.15 & 0.26 & a row: 8 NOR gates, M4 across the array, a V3 per cell \\
+BLB / BL & 8 + 8 & 0.427 / 0.421 & 0.11 & a column: 4 cells, 8 access transistors, M3 \\
+P & 64 & 0.170--0.179 & -- & one NOR output and its M3 stub \\
+latch Q / QB & 128 & 0.28--0.40 & -- & inside one latch \\
+NOR series node & 64 & 0.060 & -- & between the NOR's two series transistors \\
+VDD, VSS (no pins yet) & 2 & 9.2, 12.6 & -- & the unstrapped rails \\
+\bottomrule
+\end{tabular}
+\end{table}
+The nets that span the array, WL and XB, are an order of magnitude above everything local; a P output is 0.17\,fF. The P outputs differ by row with the length of the M3 extension that takes each stub to a free M4 track: 0.172\,fF in the bottom row (6\,nm extension), 0.175 in the middle rows (18\,nm), 0.178 in the top row (48\,nm). Along a row, WL varies by $\pm1$\,\% and XB by $\pm2$\,\%: each row's tracks sit at a different height in its cells. Corner cells' P outputs read about 1\,\% lower than interior ones.
+At $V_{DD} = 0.7$\,V, $CV^2$ for one transition is 1.03\,fJ for an XB line (0.13\,fJ per cell it drives), 1.37\,fJ for a WL pulse and 0.086\,fJ for a P output \verify{without the drivers' own capacitance, short-circuit current or activity factors; to be measured in a post-layout simulation}.
+\field{Decision} Size the XB drivers and the WL drivers for about 2.1 and 2.8\,fF plus their routing to the periphery; budget a P output's load as 0.17\,fF plus whatever the adder tree's input adds.
+\field{Revisit if} the power straps go in (VDD/VSS become two named nets, and their totals change), the cell or the routing changes, or table-based extraction (O1) needs a reference: this netlist is the field-solver result for this layout.
+
 \fussy
 % =====================================================================
 \section*{Open items}
