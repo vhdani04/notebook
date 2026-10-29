@@ -1,0 +1,76 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * ring oscillator, 51 stages (schematic)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+vdd                                        0.7
+s1                                         0.7
+s0                                           0
+s2                                           0
+s3                                         0.7
+s4                                           0
+s5                                         0.7
+s6                                           0
+s7                                         0.7
+s8                                           0
+s9                                         0.7
+s10                                          0
+s11                                        0.7
+s12                                          0
+s13                                        0.7
+s14                                          0
+s15                                        0.7
+s16                                          0
+s17                                        0.7
+s18                                          0
+s19                                        0.7
+s20                                          0
+s21                                        0.7
+s22                                          0
+s23                                        0.7
+s24                                          0
+s25                                        0.7
+s26                                          0
+s27                                        0.7
+s28                                          0
+s29                                        0.7
+s30                                          0
+s31                                        0.7
+s32                                          0
+s33                                        0.7
+s34                                          0
+s35                                        0.7
+s36                                          0
+s37                                        0.7
+s38                                          0
+s39                                        0.7
+s40                                          0
+s41                                        0.7
+s42                                          0
+s43                                        0.7
+s44                                          0
+s45                                        0.7
+s46                                          0
+s47                                        0.7
+s48                                          0
+s49                                        0.7
+s50                                          0
+vdd#branch                        -9.53462e-05
+
+ Reference value :  1.08280e-10 Reference value :  2.40280e-10 Reference value :  4.06280e-10 Reference value :  5.74280e-10 Reference value :  7.30280e-10 Reference value :  8.64280e-10 Reference value :  1.02528e-09 Reference value :  1.18828e-09 Reference value :  1.33728e-09 Reference value :  1.48828e-09 Reference value :  1.65528e-09 Reference value :  1.83528e-09 Reference value :  2.01728e-09 Reference value :  2.20128e-09 Reference value :  2.38628e-09 Reference value :  2.56628e-09 Reference value :  2.71828e-09 Reference value :  2.85928e-09 Reference value :  3.02928e-09 Reference value :  3.19328e-09 Reference value :  3.35928e-09 Reference value :  3.52828e-09 Reference value :  3.72228e-09 Reference value :  3.90028e-09 Reference value :  4.05328e-09 Reference value :  4.20428e-09 Reference value :  4.35428e-09 Reference value :  4.50928e-09 Reference value :  4.66328e-09 Reference value :  4.80828e-09 Reference value :  4.95428e-09 Reference value :  5.10428e-09 Reference value :  5.25128e-09 Reference value :  5.41428e-09 Reference value :  5.58428e-09 Reference value :  5.76828e-09 Reference value :  5.92828e-09 Reference value :  6.08628e-09 Reference value :  6.23728e-09 Reference value :  6.35128e-09 Reference value :  6.43228e-09 Reference value :  6.54828e-09 Reference value :  6.64028e-09 Reference value :  6.76928e-09 Reference value :  6.91228e-09 Reference value :  7.08028e-09 Reference value :  7.24228e-09 Reference value :  7.40228e-09 Reference value :  7.56928e-09 Reference value :  7.73628e-09 Reference value :  7.93628e-09
+No. of Data Rows : 8008
+t4                  =  9.06105e-10
+t10                 =  2.71586e-09
+period = 3.016265e-10
+stage = 2.957122e-12
+Note: Simulation executed from .control section 

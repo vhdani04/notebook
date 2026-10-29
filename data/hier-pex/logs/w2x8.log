@@ -1,0 +1,8 @@
+PEX T2x8: layout /tmp/xs/t2x8.gds
+  extracted: 160 transistors, 197 nets (6.9 s)
+  windows: 16 of 0.54 x 0.27 um at (0.006, 0.254) (+0.15 um), 6 solved (up to 55 conductors), 10 alike, 0 from the cache (1247.6 s); 1283 of 3894 couplings kept
+  capacitance: FasterCap, 197 conductors (1256.8 s)
+  resistance: 593 resistors (0.4 s)
+  netlist: /tmp/xs/w2x8.pex.spice
+RESULT PEX T2x8 devices=160 resistors=593 capacitors=1211 C(BL)=0.1700fF C(BL_Bar)=0.2366fF C(P)=0.1917fF C(VDD)=2.3777fF C(VSS)=6.2610fF C(WL)=2.7029fF C(XB)=0.1715fF
+1265.06 s wall 1246.42 s cpu 461664 KB

@@ -1,0 +1,13 @@
+A1x8 halo 0.1: 8 windows, 3 solved, 0 cached, halo used (0.116, 0.134), 2066 C, 39 s
+A2x8 halo 0.1: 16 windows, 6 solved, 0 cached, halo used (0.116, 0.134), 4183 C, 151 s
+A4x8 halo 0.1: 32 windows, 6 solved, 6 cached, halo used (0.116, 0.134), 9048 C, 366 s
+A8x8 halo 0.1: 64 windows, 0 solved, 12 cached, halo used (0.116, 0.134), 18881 C, 23 s
+A1x8 halo 0.15: 8 windows, 3 solved, 0 cached, halo used (0.168, 0.156), 2078 C, 76 s
+A2x8 halo 0.15: 16 windows, 6 solved, 0 cached, halo used (0.168, 0.17200000000000001), 4305 C, 534 s
+A4x8 halo 0.15: 32 windows, 6 solved, 6 cached, halo used (0.168, 0.17200000000000001), 9248 C, 715 s
+A8x8 halo 0.15: 64 windows, 0 solved, 12 cached, halo used (0.168, 0.17200000000000001), 19251 C, 29 s
+A1x8 halo 0.2: 8 windows, 3 solved, 0 cached, halo used (0.22, 0.212), 2078 C, 210 s
+A2x8 halo 0.2: 16 windows, 6 solved, 0 cached, halo used (0.22, 0.23800000000000002), 4317 C, 533 s
+A4x8 halo 0.2: 32 windows, 6 solved, 6 cached, halo used (0.22, 0.23800000000000002), 9282 C, 3275 s
+A8x8 halo 0.2: 64 windows, 0 solved, 12 cached, halo used (0.22, 0.23800000000000002), 19191 C, 33 s
+ALLDONE 01:39:50

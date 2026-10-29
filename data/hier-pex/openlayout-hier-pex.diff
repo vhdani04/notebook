@@ -1,0 +1,745 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 9e6f156..f6af583 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -43,6 +43,21 @@
+   now reaches the diffusion only through SDT, as in LVS.
+ 
+ ### Verification
++- **PEX of large blocks, window by window**: a single FasterCap solve takes time roughly
++  proportional to the square of the net count, so arrays of more than a few cells could not be
++  extracted. Above 48 nets, `openlayout pex` now solves the capacitances window by window. Each
++  window is the size of the array's cell and is solved with 0.1-0.15 µm of context. Alike windows
++  are solved once (`--jobs N` at a time) and cached in `~/.cache/openlayout/pex`: an array of any
++  size with mirrored rows needs 12 solves. On a 10T SRAM bit cell, single-threaded, a row of 8
++  takes 37 s instead of 5.4 min, and two rows 2.8 min instead of 16 min (54 s with `--jobs 6`).
++  Total capacitances per signal net are within 2 % of the flat solve. A 64 × 80 array (51 200
++  transistors) is extracted in about 15 min. Each window's capacitors go on the R-network nodes
++  inside it, and couplings under 0.5 % of the nets' totals go to ground, so large netlists stay
++  sparse. New options: `--cap auto|flat|window`, `--window`, `--halo`, `--jobs`, `--no-cache`;
++  see docs/PEX.md and `tests/pex/bench/windows.py`.
++- **PEX of large layouts no longer slows down quadratically**: device terminals and source /
++  drain diffusions are no longer looked up across the whole layout for every device. Before the
++  field solve, a 512-cell array took 4 min and now takes well under a minute.
+ - **Connectivity check**: row transistors' gates are probed over their channel - a gate cut at
+   mid-cell no longer reports "nothing drawn at its gate".
+ - **LVS / PEX outside a workarea**: the schematic is netlisted with the ASAP7 libraries; a symbol
+diff --git a/ROADMAP.md b/ROADMAP.md
+index 5e4cbc4..5deae1d 100755
+--- a/ROADMAP.md
++++ b/ROADMAP.md
+@@ -59,7 +59,8 @@ for ASAP7, then a full-custom 8-bit CPU.
+ - [ ] Net-level cross-probing schematic <-> layout from the LVS cross-reference
+ - [x] Parasitic extraction -> post-layout ngspice simulation: FasterCap 3D capacitances, R networks (docs/PEX.md)
+ - [x] PEX calibrated against the library's reference extraction netlists (54 cells, delays within ~2 %)
+-- [ ] PEX of large blocks (hierarchical: cells, then routing)
++- [x] PEX of large blocks: window by window, alike windows solved once and cached (docs/PEX.md)
++- [ ] PEX of large peripheries / routing: windows solved in parallel (--jobs), a subcircuit per kind of window
+ 
+ ## Phase 6b — Simulation environment
+ - [x] OLSim: tests, design variables / sweeps, corners, outputs + specs, parallel ngspice runs, histories (docs/OLSIM.md)
+diff --git a/docs/PEX.md b/docs/PEX.md
+index e176e4a..6bdce6d 100644
+--- a/docs/PEX.md
++++ b/docs/PEX.md
+@@ -8,6 +8,7 @@ simulation in ngspice.
+ ```
+ openlayout pex <layout.gds> [--cell NAME] [--out FILE] [--mode rc|c] [--rmodel reference|openroad]
+                [--schematic cell.sch|cell.spice] [--keep]
++               [--cap auto|flat|window] [--window WX,WY] [--halo UM] [--jobs N] [--no-cache]
+ ```
+ 
+ - **From KLayout**: OpenLayout > Run PEX extracts the cell as edited, saved or not. It writes
+@@ -20,6 +21,7 @@ openlayout pex <layout.gds> [--cell NAME] [--out FILE] [--mode rc|c] [--rmodel r
+   - `--rmodel openroad` uses OpenROAD's metal resistances instead of the library's (see
+     *Resistance*).
+   - `--keep` keeps the working files (FasterCap input, LVSDB).
++  - `--cap`, `--window`, `--halo`, `--jobs`, `--no-cache`: large blocks (see *Large blocks*).
+ 
+ The netlist is a `.subckt` with the cell's pins. When the cell has a schematic (`<cell>.sch` next
+ to the layout, or `--schematic`), the pins follow its order. Library cells follow the CDL order.
+@@ -36,9 +38,8 @@ X1 a vdd vss y INVx1_pex
+ ```
+ 
+ A standard cell takes about 3-6 s. About 2-3 s of that is the LVS extraction and the
+-capacitance solve under 1-3 s. The field solver treats the whole cell as one 3D problem, so large
+-blocks scale worse. A whole CPU needs a hierarchical approach (cells, then routing), which is
+-future work.
++capacitance solve under 1-3 s. Up to 48 nets, the field solver treats the whole cell as one 3D
++problem. Larger blocks are solved window by window (see *Large blocks*).
+ 
+ ## How it works
+ 
+@@ -183,6 +184,80 @@ Examples (total capacitance per pin, fF):
+     nets (`noxref_*`): not one capacitor in its netlists touches one. So there the difference is
+     the reference leaving out real wiring (for AOI21's PMOS stack node, 0.14 fF of M1 / LISD).
+ 
++## Large blocks: window by window
++
++One FasterCap solve of a whole block takes time roughly proportional to the square of its net count.
++A 10T bit cell (16 nets) takes 3 s, a row of 8 (107 nets) 5 min, two rows (197 nets) 16 min, and an
++array of thousands of cells would not finish. Above 48 nets, `openlayout pex` therefore solves the
++capacitances window by window. `--cap window` forces this mode and `--cap flat` turns it off.
++
++1. **Windows.** The block is cut into a grid of windows the size of the cell placed most often (an
++   array's bit cell), or `--window WX,WY` µm. The grid is shifted so that its edges cut across
++   wires rather than along them. This matters for mirrored rows, which put the shared rail exactly
++   on the cell edge: a rail cut along its length cost VDD 5 % of accuracy. The outer windows reach
++   to the block's edges.
++2. **One solve per window, with its context.** Each window is solved with at least `--halo`
++   (0.1 µm) of context around it. Each axis's halo is widened by up to 50 nm, so that the context's
++   outer edges also cross wires. A shape cut along its length there leaves a sliver that shields
++   too little: on the narrow INVx1, a plain 0.1 µm halo came out 5.7 % low. The conductors are:
++   - the pieces of the nets inside the window;
++   - the same nets' pieces in the context, 5 nm apart from the window's;
++   - the substrate under both.
++
++   The window's rows of the capacitance matrix, with each net's pieces summed, are its share: its
++   ground capacitance and its coupling to every net, inside or outside the window. These rows are
++   exact for the window's conductors, because the context is at 0 V whenever one of them is
++   driven. A coupling between nets of two windows is the mean of what the two windows see.
++3. **Alike windows are solved once.** A window's key is its shapes and its context's, moved to the
++   origin, with the nets numbered by their shapes. In an array most windows are alike:
++   - a row of cells has 3 kinds of window (the two ends and the middle);
++   - any larger array with mirrored rows has 12.
++
++   The solve count stays the same as the array grows. `--jobs N` runs N solves at a time. Results
++   are kept in `~/.cache/openlayout/pex` (`--no-cache` solves everything again), so a block
++   extracted again solves only the windows that changed.
++4. **Capacitors where they are.** Each window's share goes onto the nodes of the R networks inside
++   the window, by wire area, rather than being spread along the whole net (a word line no longer
++   carries every cell's coupling at every node). Couplings under 0.5 % of both nets' totals become
++   ground capacitance, which keeps the totals and keeps large netlists sparse.
++
++Measured on a 10T compute-in-memory bit cell (SRAMCIMsbc, 0.54 × 0.27 µm), tiled with odd rows
++mirrored. The flat times are FasterCap on 4 threads. "Windowed" is the whole `openlayout pex`,
++single-threaded with one solve at a time (FasterCap on one thread is some 1.8 times slower than on
++four). The percentages compare each net's total capacitance against flat: the mean and the largest
++error over the signal nets, labelled and unlabelled, VDD included.
++
++| array | nets | flat: FasterCap | windows / solved | windowed | `--jobs 6` | vs flat | capacitors flat → windowed |
++|---|---|---|---|---|---|---|---|
++| 1 × 8 | 107 | 322 s | 8 / 3 | 37 s | | mean 0.4 %, max 1.5 % | 3684 → 1814 |
++| 2 × 8 | 197 | 971 s | 16 / 6 | 166 s | 54 s | mean 0.5 %, max 1.7 % | 17662 → 4974 |
++| 4 × 8 | 377 | @FLAT48@ | 32 / 12 | 539 s | 205 s | @E48@ | @C48@ → 13362 |
++| 64 × 80 | 56609 | — | 5120 / 12 | | 9-15 min † | | 2.4 M capacitors |
++
++† 0.1-0.15 µm halo, FasterCap on 2 threads, run beside other jobs. The 64 × 80 array is 51 200
++transistors: the whole RC extraction, 288 000 resistors, peaked at 2.9 GB. Its LVS extraction took
++40 s and its R networks 70-100 s.
++
++- **VSS is left out.** Its total depends most on the substrate around the block, and it is ground
++  in a simulation. VSS comes out some 7-9 % under flat, because the flat solve's substrate plate
++  reaches 0.3 µm past the block on every side.
++- **The windowed netlist simulates faster.** The 1 × 8 netlist took ngspice 8 s against 15 s for
++  the flat one (6 ns transient).
++- **A flat netlist of 50 000 transistors is too much for ngspice.** On the 64 × 80 netlist,
++  ngspice had not started its transient after 31 min at 4.8 GB. Simulating at this size needs a
++  subcircuit per kind of window, fewer coupling capacitors, or a faster simulator.
++
++### What is left
++
++- **Netlists for simulation at scale.** One subcircuit per kind of window, instanced per window
++  (the R networks cross windows, so they would be cut at the window edges), and a coarser coupling
++  threshold for large blocks.
++- **Periphery and routing.** Windows away from the array (adders, drivers, top-level routing) are
++  rarely alike, so each costs a solve. That is fine for some tens of them. For a large periphery:
++  windows the size of the periphery's cells (or a fixed `--window`) and `--jobs`.
++- **Delays flat vs windowed.** A post-layout simulation that switches the cells: the 1 × 8
++  testbench used so far never switches its output.
++
+ ## Speed
+ 
+ This is the capacitance solve alone (FasterCap on 4 cores). The whole `openlayout pex` adds about
+@@ -216,9 +291,13 @@ This is the capacitance solve alone (FasterCap on 4 cores). The whole `openlayou
+   - the output network against the reference's, and `--rmodel openroad` below it;
+   - a hierarchical layout (placed cell, its own labels), giving the same capacitances as the cell;
+   - `--mode c`;
++  - a 2 × 4 array of INVx1 window by window: 6 kinds of window solved once each, totals within
++    5 % of a flat solve, and a second run taking every window from the cache;
+   - a post-layout ngspice simulation in which the parasitics slow the inverter down.
+ - `tests/pex/bench/`: the benchmark and calibration scripts above (minutes to hours, not in
+   doctor).
++- `tests/pex/bench/windows.py`: a cell tiled into an array, extracted window by window and
++  (`--flat`) in one solve, with the totals compared.
+ - `tests/klayout/test_lvs_gui.py`: OpenLayout > Run PEX on a workarea cell.
+ - `tests/python/test_hub.py`: the hub's PEX button.
+ 
+diff --git a/python/openlayout/pex.py b/python/openlayout/pex.py
+index a4c6565..6cb6988 100644
+--- a/python/openlayout/pex.py
++++ b/python/openlayout/pex.py
+@@ -24,6 +24,7 @@ docs/PEX.md has the process stack, where its numbers come from, and the comparis
+ library's reference extraction netlists.
+ """
+ import argparse
++import bisect
+ import json
+ import math
+ import os
+@@ -51,6 +52,10 @@ FIN_PITCH_W = 0.027     # um of device width per fin (LVS: W = nfin x 27 nm)
+ TILE = 0.05             # um: wire pieces assigned to the nearest network node for the capacitance
+ MIN_C = 1e-20           # F: smaller capacitances are dropped (0.01 aF)
+ MIN_R = 1e-3            # Ohm: nodes joined by less are one node (e.g. two terminals on one diffusion)
++WIN_MIN = 48            # conductors: more and --cap auto solves window by window
++WIN_HALO = 0.10         # um: the context solved around each window (at least; _clear_halo)
++WIN_GAP = 0.005         # um: between a net's piece in the window and its piece in the context
++WIN_MIN_CC = 0.005      # windowed: couplings under this share of both nets' totals go to ground
+ POWER_RE = re.compile(r"^(VDD|VSS|VCC|GND|VPWR|VGND)", re.I)
+ 
+ # R network: conductor layers (LVS names) and cuts (cut, bottom, top) - the cut "v0lig" is V0 on LIG
+@@ -118,6 +123,8 @@ def solver_conductors(lvsdb, circ, tech, substrate_net):
+     gap = int(round(tech["sd_gap"] / dbu))
+     gates = lvsdb.layer_by_name("gate").merged()
+     gates = gates.sized(gap) if gap > 0 else gates
++    gate_index = kdb.Shapes()            # for the gates near a net (not the whole layout's every time)
++    gate_index.insert(gates)
+     heights = {n: (c["z0"], c["z1"]) for n, c in tech["conductors"].items()}
+     heights.update({n: (c["z0"], c["z1"]) for n, c in tech["cuts"].items() if c["z1"] > c["z0"]})
+     sources = {n: ("sd" if n == "sdx" else n) for n in heights}
+@@ -131,7 +138,11 @@ def solver_conductors(lvsdb, circ, tech, substrate_net):
+             r = lvsdb.shapes_of_net(net, layer, True)
+             if r.is_empty():
+                 continue
+-            r = (r - gates).merged() if name == "sdx" else r.merged()
++            if name == "sdx":
++                near = kdb.Region([s.polygon for s in gate_index.each_overlapping(r.bbox())])
++                r = (r - near).merged()
++            else:
++                r = r.merged()
+             if not r.is_empty():
+                 pieces.append((r, z0, z1))
+                 bbox += r.bbox()
+@@ -143,10 +154,18 @@ def solver_conductors(lvsdb, circ, tech, substrate_net):
+     return conds, window
+ 
+ 
+-def capacitance(lvsdb, cell, work, tech, substrate_net):
+-    """{net: C} ground and {(net, net): C} coupling capacitances (F), by FasterCap."""
++def capacitance(lvsdb, cell, work, tech, substrate_net, cap="auto", grid=None, halo=WIN_HALO, cache=True,
++                stats=None, jobs=1):
++    """{net: C} ground and {(net, net): C} coupling capacitances (F), by FasterCap - flat (one solve
++    of every net) or windowed (windowed_capacitance); `cap` "auto": windowed above WIN_MIN conductors."""
+     circ = lvsdb.netlist().circuit_by_name(cell)
+     conds, window = solver_conductors(lvsdb, circ, tech, substrate_net)
++    if cap == "window" or (cap == "auto" and len(conds) > WIN_MIN):
++        plate = conds[substrate_net].pop()
++        if not conds[substrate_net]:
++            del conds[substrate_net]
++        return windowed_capacitance(conds, plate, window, lvsdb.internal_layout().dbu, tech, work,
++                                    substrate_net, grid, halo, cache, stats, jobs)
+     diel = tech["dielectric"]
+     names, mat, _ = fieldsolver.capacitance_matrix(
+         conds, lvsdb.internal_layout().dbu, diel["k"], work / "fastercap",
+@@ -158,7 +177,307 @@ def capacitance(lvsdb, cell, work, tech, substrate_net):
+             c = -(mat[i][j] + mat[j][i]) / 2
+             if c > 0:
+                 coupling[(a, names[j])] = c
+-    return dict(ground), coupling
++    return dict(ground), coupling, None
++
++
++# ---- 2b. windowed capacitance (large blocks) ------------------------------------------------------
++def array_grid(gds, cell):
++    """(x0, y0, px, py) um: origin and pitch of the cell placed most often in `cell` (an array's bit
++    cell) - the windows of windowed_capacitance - or None when no cell is placed twice. The pitch is
++    that of the placed cells' boxes, the origin that of their placements (rows mirrored about a
++    shared rail have it on the rail)."""
++    layout = kdb.Layout()
++    layout.read(str(gds))
++    top = layout.cell(cell)
++    if top is None:
++        return None
++    boxes, origins = defaultdict(list), defaultdict(list)
++    for inst in top.each_inst():
++        bbox = layout.cell(inst.cell_index).bbox()
++        for t in inst.cell_inst.each_cplx_trans():
++            boxes[inst.cell_index].append(bbox.transformed(t))
++            origins[inst.cell_index].append(t.disp)
++    ci = max(boxes, key=lambda c: len(boxes[c]), default=None)
++    best = boxes[ci] if ci is not None else []
++    if len(best) < 2:
++        return None
++
++    def pitch(values, size):
++        v = sorted(set(values))
++        d = [b - a for a, b in zip(v, v[1:]) if b > a]
++        return min(d) if d else size
++
++    xs, ys = [b.left for b in best], [b.bottom for b in best]
++    d = layout.dbu
++    return (min(p.x for p in origins[ci]) * d, min(p.y for p in origins[ci]) * d,
++            pitch(xs, best[0].width()) * d, pitch(ys, best[0].height()) * d)
++
++
++def _edge_costs(conds, bbox, origin, pitch, vertical, dbu, candidates, sides):
++    """For each candidate d (dbu): the conductor area near the lines origin + k * pitch + s(d) for s
++    in `sides` - how much a window edge there would cut shapes lengthwise. Looked at in a few
++    pitches at the block's centre."""
++    c = bbox.center()
++    span = 3 * pitch
++    sample = kdb.Box(c.x - span, bbox.bottom, c.x + span, bbox.top) if vertical else \
++        kdb.Box(bbox.left, c.y - span, bbox.right, c.y + span)
++    shapes = kdb.Region()
++    for pieces in conds.values():
++        for r, _, _ in pieces:
++            if r.bbox().overlaps(sample):
++                shapes += r & kdb.Region(sample)
++    shapes.merged_semantics = False
++    band = max(1, int(round(0.004 / dbu)))
++    lo, hi = (sample.left, sample.right) if vertical else (sample.bottom, sample.top)
++    costs = []
++    for d in candidates:
++        edges = kdb.Region()
++        for side in sides:
++            o = origin + side(d)
++            e = o + ((lo - o) // pitch) * pitch
++            while e <= hi:
++                edges.insert(kdb.Box(e - band, sample.bottom, e + band, sample.top) if vertical else
++                             kdb.Box(sample.left, e - band, sample.right, e + band))
++                e += pitch
++        costs.append((shapes & edges).area())
++    return costs
++
++
++def _runs(costs):
++    """(length, start) of the runs of the least cost (within 5 %)."""
++    best = min(costs)
++    runs, start = [], None
++    for k, cst in enumerate(costs + [None]):
++        if cst is not None and cst <= best * 1.05:
++            start = k if start is None else start
++        elif start is not None:
++            runs.append((k - start, start))
++            start = None
++    return runs
++
++
++def _clear_offset(conds, bbox, origin, pitch, vertical, dbu):
++    """The shift of the window edges (dbu, 0 .. pitch) that cuts the fewest shapes lengthwise - a wire
++    split along its length by WIN_GAP couples hugely to itself and the cancellation costs accuracy
++    (mirrored rows put the rail exactly on the cell's edge): the middle of the longest clear run."""
++    step = max(1, int(round(0.002 / dbu)))
++    length, start = max(_runs(_edge_costs(conds, bbox, origin, pitch, vertical, dbu, range(0, pitch, step),
++                                          [lambda d: d])))
++    return int(round((start + (length - 1) / 2) * step))
++
++
++def _clear_halo(conds, bbox, origin, pitch, vertical, dbu, h):
++    """The halo (dbu, h .. h + 50 nm) whose outer edges cut the fewest shapes lengthwise - a context
++    shape cut along its length leaves a sliver that shields its window too little: the smallest one
++    a step inside a clear run."""
++    step = max(1, int(round(0.002 / dbu)))
++    cands = list(range(h, h + int(round(0.05 / dbu)) + 1, step))
++    runs = _runs(_edge_costs(conds, bbox, origin, pitch, vertical, dbu, cands, [lambda d: -d, lambda d: d]))
++    length, start = min(runs, key=lambda r: r[1])
++    return cands[start + (1 if length > 2 else 0)]
++
++
++def _geometry_key(pieces, dx, dy):
++    return ";".join(sorted(f"{z0:g},{z1:g}:" + " ".join(sorted(str(p) for p in r.moved(dx, dy).each()))
++                           for r, z0, z1 in pieces))
++
++
++def windowed_capacitance(conds, plate, window, dbu, tech, work, substrate_net, grid=None, halo=WIN_HALO,
++                         cache=True, stats=None, jobs=1):
++    """Ground and coupling capacitances window by window, for blocks too large for one solve. The
++    block is cut into a grid of windows - by default the pitch of its array (array_grid), `grid` =
++    (x0, y0, px, py) um, shifted to cut across wires rather than along them (_clear_offset); the
++    outer windows reach to the block's edges (no slivers). Each window is solved with the context
++    `halo` um around it: the nets' pieces in the window, and apart from them (WIN_GAP) their pieces
++    in the context, the substrate plate under both. The window's rows of the matrix (whole nets summed) are its share of the ground
++    capacitances and couplings; a coupling between two windows' nets is the mean of both windows'
++    rows. Windows alike - the same shapes in and around them, as in an array - are solved once
++    (FasterCap, `jobs` at a time) and the result is kept in ~/.cache/openlayout/pex for later runs."""
++    import hashlib
++    diel = tech["dielectric"]
++    ifaces = [(i["z"], i["k_above"]) for i in diel["interfaces"]]
++    bbox = kdb.Box()
++    for pieces in conds.values():
++        for r, _, _ in pieces:
++            bbox += r.bbox()
++    if grid is None:
++        grid = (bbox.left * dbu, bbox.bottom * dbu, 1.0, 1.0)
++    x0, y0, px, py = (int(round(v / dbu)) for v in grid)
++    x0 += _clear_offset(conds, bbox, x0, px, True, dbu)
++    y0 += _clear_offset(conds, bbox, y0, py, False, dbu)
++    h, g = int(round(halo / dbu)), max(1, int(round(WIN_GAP / dbu)))
++    hx = _clear_halo(conds, bbox, x0, px, True, dbu, h)
++    hy = _clear_halo(conds, bbox, y0, py, False, dbu, h)
++    h = max(hx, hy)
++    PLATE = "\0plate"
++
++    def bounds(lo, hi, o, p):          # window edges: the grid inside the block, the block's edges outside
++        k = math.ceil((lo + p / 2 - o) / p)
++        inner = []
++        while o + k * p < hi - p / 2:
++            inner.append(o + k * p)
++            k += 1
++        return [lo] + inner + [hi]
++
++    xb, yb = bounds(bbox.left, bbox.right, x0, px), bounds(bbox.bottom, bbox.top, y0, py)
++
++    def span(edges, lo, hi):
++        return range(max(0, bisect.bisect_right(edges, lo) - 1), min(len(edges) - 1, bisect.bisect_left(edges, hi)))
++
++    # the windows each net's pieces reach into (with the halo)
++    buckets = defaultdict(set)
++    for name, pieces in conds.items():
++        for r, _, _ in pieces:
++            b = r.bbox()
++            for i in span(xb, b.left - h, b.right + h):
++                for j in span(yb, b.bottom - h, b.top + h):
++                    buckets[(i, j)].add(name)
++
++    salt = hashlib.sha256((Path(TECH_JSON).read_text() + repr((MAX_EDGE, ACCURACY, hx, hy, g, px, py, dbu, "win4")))
++                          .encode()).hexdigest()
++    cdir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "openlayout" / "pex"
++    if cache:
++        cdir.mkdir(parents=True, exist_ok=True)
++    solved, results = {}, {}            # in this run: key -> result; window -> (key, net names)
++    pending = {}                         # key -> (conductors, box) of the kinds of window to solve
++    nhit = ndisk = biggest = 0
++    t0 = time.time()
++    windows = sorted(buckets)
++    for n, (i, j) in enumerate(windows):
++        core = kdb.Box(xb[i], yb[j], xb[i + 1], yb[j + 1])
++        clip = core.enlarged(hx, hy)
++        core_r, clip_r, inner_r = kdb.Region(core), kdb.Region(clip), kdb.Region(core.enlarged(g, g))
++        items = []                       # (kind, net, pieces): "c" in the window, "h" in the context
++        for name in buckets[(i, j)]:
++            cp, hp = [], []
++            for r, z0, z1 in conds[name]:
++                if not r.bbox().overlaps(clip):
++                    continue
++                c = (r & core_r).merged()
++                o = ((r & clip_r) - inner_r).merged()
++                if not c.is_empty():
++                    cp.append((c, z0, z1))
++                if not o.is_empty():
++                    hp.append((o, z0, z1))
++            if cp:
++                items.append(("c", name, cp))
++            if hp:
++                items.append(("h", name, hp))
++        if not any(k == "c" for k, _, _ in items):
++            continue
++        sub = (plate[0] & clip_r).merged()
++        if not sub.is_empty():
++            items.append(("h", PLATE, [(sub, plate[1], plate[2])]))
++        # canonical form: nets numbered by their pieces' shapes, relative to the window
++        keyed = sorted((kind, _geometry_key(pieces, -core.left, -core.bottom), name, pieces)
++                       for kind, name, pieces in items)
++        index = {}
++        for _, _, name, _ in keyed:
++            index.setdefault(name, len(index))
++        text = f"{core.width()} {core.height()}\n" + "\n".join(f"{kind}{index[name]}|{gk}" for kind, gk, name, _ in keyed)
++        key = hashlib.sha256((salt + text).encode()).hexdigest()
++        if key in solved or key in pending:
++            nhit += 1
++        elif cache and (cdir / f"{key}.json").is_file():
++            solved[key] = {int(a): {"ground": v["ground"], "to": {int(b): c for b, c in v["to"].items()}}
++                           for a, v in json.loads((cdir / f"{key}.json").read_text()).items()}
++            ndisk += 1
++        else:
++            pending[key] = ({f"{kind}{index[name]}": [(r.moved(-core.left, -core.bottom), z0, z1)
++                                                      for r, z0, z1 in pieces]
++                             for kind, _, name, pieces in keyed}, clip.moved(-core.left, -core.bottom))
++        results[(i, j)] = (key, {k: name for name, k in index.items()})
++        if (n + 1) % 1000 == 0:
++            log(f"    windows {n + 1}/{len(windows)}: {len(pending)} to solve, {nhit} alike ({time.time() - t0:.0f} s)")
++
++    def solve(item):                     # one kind of window: its rows of the matrix, per net
++        k, (key, (moved, box)) = item
++        names, mat, _ = fieldsolver.capacitance_matrix(moved, dbu, diel["k"], work / "fastercap" / f"w{k}", ifaces,
++                                                       box, MAX_EDGE, ACCURACY)
++        res = {}
++        for a, na in enumerate(names):
++            if na[0] != "c":
++                continue
++            to = defaultdict(float)
++            for b, nb in enumerate(names):
++                to[int(nb[1:])] += mat[a][b]
++            to.pop(int(na[1:]))
++            res[int(na[1:])] = {"ground": sum(mat[a]), "to": {kk: -v for kk, v in to.items()}}
++        if cache:
++            (cdir / f"{key}.json").write_text(json.dumps(res))
++        return key, res, len(names)
++
++    nsolve = len(pending)
++    if pending:
++        log(f"    {nsolve} kinds of window to solve, {max(1, jobs)} at a time")
++    from concurrent.futures import ThreadPoolExecutor
++    with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:     # FasterCap runs as its own process
++        for key, res, nc in pool.map(solve, enumerate(pending.items())):
++            solved[key] = res
++            biggest = max(biggest, nc)
++
++    # sum the windows' shares: self capacitance and directed couplings per net
++    self_c, directed, has_core = defaultdict(float), defaultdict(float), set()
++    for key, names in results.values():
++        for ka, v in solved[key].items():
++            a = names[ka]
++            has_core.add(a)
++            self_c[a] += v["ground"] + sum(v["to"].values())
++            for kb, c in v["to"].items():
++                directed[(a, names[kb])] += c
++    coupling = defaultdict(float)
++    for a, b in {tuple(sorted(k)) for k in directed if PLATE not in k}:
++        ab, ba = directed.get((a, b)), directed.get((b, a))
++        coupling[(a, b)] += (ab + ba) / 2 if ab is not None and ba is not None else (ab if ab is not None else ba)
++    for (a, b), c in directed.items():
++        if b == PLATE and a != substrate_net:
++            coupling[tuple(sorted((a, substrate_net)))] += c
++    coupling = {k: c for k, c in coupling.items() if c > 0}
++    ground = dict(self_c)
++    for (a, b), c in coupling.items():
++        ground[a] = ground.get(a, 0.0) - c
++        ground[b] = ground.get(b, 0.0) - c
++    ground = {k: max(0.0, v) for k, v in ground.items()}
++
++    # the same capacitances where they are: each window's share with its box (um), for the nodes of
++    # the R networks in it; couplings under WIN_MIN_CC of either net's total go to ground
++    total = defaultdict(float, ground)
++    for (a, b), c in coupling.items():
++        total[a] += c
++        total[b] += c
++    small = {k for k, c in coupling.items() if c < WIN_MIN_CC * min(total[k[0]], total[k[1]])}
++    rows = defaultdict(float)
++    for key, names in results.values():
++        for ka, v in solved[key].items():
++            rows[names[ka]] += v["ground"]
++    local = []
++    for (i, j), (key, names) in results.items():
++        p = (xb[i] * dbu, yb[j] * dbu, xb[i + 1] * dbu, yb[j + 1] * dbu)
++        for ka, v in solved[key].items():
++            a = names[ka]
++            g_here = v["ground"] * (ground[a] / rows[a] if rows[a] > 0 else 0.0)
++            for kb, c in v["to"].items():
++                b = names[kb]
++                if b == PLATE:
++                    b = substrate_net
++                elif (b, a) in directed:                     # the other half comes from b's windows
++                    c /= 2
++                pair = tuple(sorted((a, b)))
++                if a == b or pair not in coupling:
++                    continue
++                if pair in small:
++                    g_here += c
++                    local.append((b, None, c, p))
++                else:
++                    local.append((a, b, c, p))
++            local.append((a, None, g_here, p))
++    log(f"  windows: {len(results)} of {px * dbu:g} x {py * dbu:g} um at ({x0 * dbu:g}, {y0 * dbu:g}) "
++        f"(+{hx * dbu:g} / {hy * dbu:g} um), {nsolve} solved "
++        f"(up to {biggest} conductors), {nhit} alike, {ndisk} from the cache ({time.time() - t0:.1f} s); "
++        f"{len(coupling) - len(small)} of {len(coupling)} couplings kept")
++    if stats is not None:
++        stats.update(windows=len(results), solved=nsolve, alike=nhit, cached=ndisk, conductors=biggest)
++    return ground, coupling, local
+ 
+ 
+ # ---- 3. resistance (KLayout RNetExtractor) --------------------------------------------------------
+@@ -291,8 +610,11 @@ def spice_name(name):
+     return re.sub(r"[^A-Za-z0-9_]", "_", name)
+ 
+ 
+-def extract(gds, cell=None, out=None, mode="rc", schematic=None, keep=False, rmodel="reference"):
+-    """PEX of `cell` in `gds` into `out` (<cell>.pex.spice next to the layout). Returns a summary."""
++def extract(gds, cell=None, out=None, mode="rc", schematic=None, keep=False, rmodel="reference", cap="auto",
++            window=None, halo=WIN_HALO, cache=True, jobs=1):
++    """PEX of `cell` in `gds` into `out` (<cell>.pex.spice next to the layout). Returns a summary.
++    `cap`: "flat" (one FasterCap solve), "window" (windowed_capacitance; `window` = (wx, wy) um,
++    default the array's pitch, `jobs` FasterCaps at a time) or "auto" (windowed above WIN_MIN conductors)."""
+     tech = load_tech()
+     gds = Path(gds).resolve()
+     if cell is None:
+@@ -327,7 +649,11 @@ def extract(gds, cell=None, out=None, mode="rc", schematic=None, keep=False, rmo
+     floating = {name for name, n in nets.items() if n.pin_count() == 0 and n.terminal_count() == 0}
+ 
+     t1 = time.time()
+-    ground, coupling = capacitance(lvsdb, cell, work, tech, vss if vss != "0" else "SUBSTRATE")
++    grid, wstats = array_grid(gds, cell), {}
++    if window:
++        grid = (grid[0] if grid else 0.0, grid[1] if grid else 0.0) + tuple(window)
++    ground, coupling, local = capacitance(lvsdb, cell, work, tech, vss if vss != "0" else "SUBSTRATE", cap, grid,
++                                          halo, cache, wstats, jobs)
+     log(f"  capacitance: FasterCap, {len(ground)} conductors ({time.time() - t1:.1f} s)")
+ 
+     # device terminals: (net, (device index, terminal), layer, polygon)
+@@ -335,15 +661,31 @@ def extract(gds, cell=None, out=None, mode="rc", schematic=None, keep=False, rmo
+     dev_index = {d.id(): i for i, d in enumerate(devices)}
+     terminals = defaultdict(list)
+     sdx = lvsdb.layer_by_name("sdx")
++    to_um = kdb.CplxTrans(lvsdb.internal_layout().dbu)
++    in_abstract = {}       # (device abstract, terminal): its shapes in the abstract's frame
++
++    def terminal_shapes(tr):
++        # shapes_of_terminal takes longer the larger the layout: once per abstract, then moved
++        d = tr.device()
++        if d.device_abstract is None or any(True for _ in d.each_combined_abstract()):
++            return lvsdb.shapes_of_terminal(tr, kdb.ICplxTrans())
++        t = to_um.inverted() * d.trans * to_um
++        key = (d.device_abstract.cell_index(), tr.terminal_id())
++        if key not in in_abstract:
++            in_abstract[key] = lvsdb.shapes_of_terminal(tr, t.inverted())
++        return {li: reg.transformed(t) for li, reg in in_abstract[key].items()}
++
+     for name, n in nets.items():
++        sd_of_net = None
+         for tr in n.each_terminal():
+             d, t = tr.device(), tr.terminal_def().name
+             key = (dev_index[d.id()], t)
+-            shapes = lvsdb.shapes_of_terminal(tr, kdb.ICplxTrans())
+-            for li, reg in shapes.items():
++            for li, reg in terminal_shapes(tr).items():
+                 lname = lvsdb.layer_name(li)
+                 if lname == "sd":                     # source / drain: on the sdx node of the net
+-                    reg = reg & lvsdb.shapes_of_net(n, sdx, True).merged()
++                    if sd_of_net is None:
++                        sd_of_net = lvsdb.shapes_of_net(n, sdx, True).merged()
++                    reg = reg & sd_of_net
+                     lname = "sdx"
+                 if lname not in CONDUCTORS:
+                     continue
+@@ -415,13 +757,49 @@ def extract(gds, cell=None, out=None, mode="rc", schematic=None, keep=False, rmo
+         if name not in net_nodes:
+             continue
+         total[name] += c
++        if local is not None:
++            continue
+         for node, (wv, _) in net_nodes[name].items():
+             add(node, gnd, c * wv)
++    spread = {}
++
++    def share(net, box):
++        # the nodes of `net` in the window box (x0, y0, x1, y1 um) by their wire area, else the nearest
++        if (net, box) not in spread:
++            nn = [(k, w, q) for k, (w, q) in net_nodes[net].items() if q is not None]
++            inside = [x for x in nn if box[0] <= x[2].x <= box[2] and box[1] <= x[2].y <= box[3]]
++            tot = sum(w for _, w, _ in inside)
++            if inside and tot > 0:
++                spread[(net, box)] = [(k, w / tot, q) for k, w, q in inside]
++            elif nn:
++                cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
++                spread[(net, box)] = [min(nn, key=lambda x: (x[2].x - cx) ** 2 + (x[2].y - cy) ** 2)[:1] + (1.0, None)]
++            else:
++                spread[(net, box)] = [(next(iter(net_nodes[net])), 1.0, None)]
++        return spread[(net, box)]
++
++    for a, b, c, box in local or ():                 # windowed: each window's share in the window
++        if a not in net_nodes or (b is not None and b not in net_nodes):
++            continue
++        sa = share(a, box)
++        if b is None:
++            for node, w, _ in sa:
++                add(node, gnd, c * w)
++            continue
++        sb = share(b, box)
++        if len(sa) < len(sb):
++            sa, sb = sb, sa
++        for node, w, q in sa:                         # each to the nearest node of the other net
++            target = sb[0][0] if len(sb) == 1 or q is None else \
++                min(sb, key=lambda x: (x[2].x - q.x) ** 2 + (x[2].y - q.y) ** 2)[0]
++            add(node, target, c * w)
+     for (a, b), c in coupling.items():
+         if a not in net_nodes or b not in net_nodes:
+             continue
+         total[a] += c
+         total[b] += c
++        if local is not None:
++            continue
+         na, nb = net_nodes[a], net_nodes[b]
+         if len(na) < len(nb):
+             na, nb = nb, na
+@@ -463,7 +841,9 @@ def extract(gds, cell=None, out=None, mode="rc", schematic=None, keep=False, rmo
+     out.write_text("\n".join(lines))
+     summary = {"cell": cell, "out": str(out), "devices": len(devices), "resistors": len(r_lines),
+                "capacitors": len(c_lines), "total_fF": {n: total[n] * 1e15 for n in pins if n in total},
+-               "seconds": time.time() - t0, "work": str(work)}
++               "all_fF": {spice_name(n): c * 1e15 for n, c in total.items() if n not in floating},
++               "seconds": time.time() - t0, "work": str(work),
++               "windows": wstats or None}
+     log(f"  netlist: {out}")
+     log(f"RESULT PEX {cell} devices={len(devices)} resistors={len(r_lines)} capacitors={len(c_lines)} "
+         + " ".join(f"C({spice_name(n)})={v:.4f}fF" for n, v in summary["total_fF"].items()))
+@@ -484,9 +864,18 @@ def main(argv=None):
+                     help="reference: the library's reference-extraction sheet / via resistances (default); "
+                          "openroad: OpenROAD's setRC.tcl values for M1-M9 / V1-V8")
+     ap.add_argument("--schematic", help="SPICE netlist of the cell, for the order of the pins")
++    ap.add_argument("--cap", choices=("auto", "flat", "window"), default="auto",
++                    help="flat: one 3D solve of every net; window: window by window, alike windows solved "
++                         f"once (large blocks); auto (default): window above {WIN_MIN} nets")
++    ap.add_argument("--window", help="WX,WY: window size in um (default: the pitch of the array's cell)")
++    ap.add_argument("--halo", type=float, default=WIN_HALO, help=f"context around each window, um (default {WIN_HALO})")
++    ap.add_argument("--jobs", type=int, default=1, help="windows solved at the same time (default 1)")
++    ap.add_argument("--no-cache", action="store_true", help="solve every window again (no ~/.cache/openlayout/pex)")
+     ap.add_argument("--keep", action="store_true", help="keep the working files (FasterCap input, LVSDB)")
+     a = ap.parse_args(argv)
+-    extract(a.layout, a.cell, a.out, a.mode, a.schematic, a.keep, a.rmodel)
++    window = tuple(float(v) for v in a.window.split(",")) if a.window else None
++    extract(a.layout, a.cell, a.out, a.mode, a.schematic, a.keep, a.rmodel, a.cap, window, a.halo, not a.no_cache,
++            a.jobs)
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/tests/pex/test_pex.py b/tests/pex/test_pex.py
+index 8917f3c..3091025 100644
+--- a/tests/pex/test_pex.py
++++ b/tests/pex/test_pex.py
+@@ -1,6 +1,7 @@
+ # Parasitic extraction (openlayout pex): library cells against the library's own reference extraction
+ # (reference extraction netlists in $ASAP7_STDCELLS/CDL/xAct3D_extracted), the resistor networks, a
+-# hierarchical layout, the capacitance-only mode and a post-layout simulation. Run with the venv:
++# hierarchical layout, the capacitance-only mode, a large block window by window and a post-layout
++# simulation. Run with the venv:
+ #   PYTHONPATH=$OPENLAYOUT_HOME/python $OPENLAYOUT_ROOT/venv/bin/python tests/pex/test_pex.py
+ import os
+ import re
+@@ -142,6 +143,46 @@ lines, _ = netlist(TMP / "myinv_c.spice")
+ check("--mode c: capacitances only", s["resistors"] == 0 and s["capacitors"] > 0
+       and not any(l.startswith("R") for l in lines))
+ 
++# ---- a large block window by window: a 2 x 4 array of INVx1, odd row mirrored about the shared rail --
++# each window (one cell) is solved with 0.1-0.15 um of context; the 6 kinds of window (left / middle /
++# right, bottom / top row) once each - the totals within a few % of one solve of the whole array
++os.environ["XDG_CACHE_HOME"] = str(TMP / "cache")
++arr = kdb.Layout()
++arr.dbu = lib.dbu
++inv = arr.create_cell("INVx1_ASAP7_75t_R")
++for li in lib.layer_indexes():
++    inv.shapes(arr.layer(lib.get_info(li))).insert(src.shapes(li))
++top = arr.create_cell("invarray")
++w, hgt = src.dbbox().width(), 0.27
++for r in range(2):
++    for c in range(4):
++        t = kdb.DTrans(c * w, 0.0) if r == 0 else kdb.DTrans(kdb.DTrans.M0, kdb.DVector(c * w, 2 * hgt))
++        top.insert(kdb.DCellInstArray(inv.cell_index(), t))
++        for li in arr.layer_indexes():          # the inputs and outputs as A<r><c> / Y<r><c>, the rails of row 0
++            for sh in inv.shapes(li).each():
++                if sh.is_text() and (sh.text_string in ("A", "Y") or (r == 0 and c == 0)):
++                    tx = sh.dtext.transformed(t)
++                    tx.string = sh.text_string + (f"{r}{c}" if sh.text_string in ("A", "Y") else "")
++                    top.shapes(li).insert(tx)
++gds = TMP / "invarray.gds"
++arr.write(str(gds))
++check("windows: the array's pitch is the grid", pex.array_grid(gds, "invarray") is not None
++      and abs(pex.array_grid(gds, "invarray")[3] - hgt) < 1e-6, pex.array_grid(gds, "invarray"))
++flat = pex.extract(gds, "invarray", TMP / "invarray_flat.spice", mode="c", cap="flat")
++win = pex.extract(gds, "invarray", TMP / "invarray_win.spice", mode="c", cap="window")
++ws = win["windows"] or {}
++check("windows: 8 windows, 6 kinds solved once each", ws.get("windows") == 8 and ws.get("solved") == 6
++      and ws.get("alike") == 2, ws)
++errs = {p: win["total_fF"][p] / flat["total_fF"][p] - 1 for p in flat["total_fF"] if p[0] in "AY"}
++worst = max(errs, key=lambda p: abs(errs[p]))
++check(f"windows: totals as one solve's ({len(errs)} pins, worst {worst} {errs[worst] * 100:+.1f} %)",
++      len(errs) == 16 and all(abs(e) < 0.05 for e in errs.values()))
++again = pex.extract(gds, "invarray", TMP / "invarray_win2.spice", mode="c", cap="window")
++check("windows: a second run takes every window from the cache", (again["windows"] or {}).get("solved") == 0
++      and (again["windows"] or {}).get("cached") == 6
++      and all(abs(again["total_fF"][p] - v) < 1e-6 for p, v in win["total_fF"].items()), again["windows"])
++del os.environ["XDG_CACHE_HOME"]
++
+ # ---- post-layout simulation: FO2 inverter, schematic vs extracted -------------------------------
+ (TMP / "pre.spice").write_text(".subckt INVT A VDD VSS Y\nN1 Y A VSS VSS nmos_rvt l=20n nfin=3\n"
+                                "N2 Y A VDD VDD pmos_rvt l=20n nfin=3\n.ends\n")

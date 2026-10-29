@@ -1,0 +1,13 @@
+== windowed RO51 00:03:08
+RO51 halo 0.1: 52 windows, 10 solved, 0 cached, halo used (0.15, 0.134), 1530 C, 132 s
+RO51 halo 0.15: 52 windows, 11 solved, 0 cached, halo used (0.162, 0.166), 1538 C, 130 s
+== single INVx1 PEX 00:07:32
+RESULT PEX INVx1_ASAP7_75t_R devices=2 resistors=5 capacitors=19 C(A)=0.2171fF C(VDD)=0.1155fF C(VSS)=0.3654fF C(Y)=0.1666fF
+== flat RO51 00:07:57
+PEX RO51: layout /tmp/xs/ro51.gds
+  extracted: 102 transistors, 258 nets (6.9 s)
+  capacitance: FasterCap, 258 conductors (46118.2 s)
+  resistance: 357 resistors (0.3 s)
+  netlist: /home/vhdani/papers/notebook/data/hier-pex/ring/ro51.flat.pex.spice
+46126.57 s wall 45278.32 s cpu 787472 KB
+ALLDONE 12:56:44

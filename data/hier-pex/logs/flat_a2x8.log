@@ -1,0 +1,8 @@
+== flat a2x8 start 23:57:46
+PEX A2x8: layout /tmp/xs/a2x8.gds
+  extracted: 160 transistors, 197 nets (4.3 s)
+  capacitance: FasterCap, 197 conductors (29726.5 s)
+  resistance: 446 resistors (0.2 s)
+  netlist: /home/vhdani/papers/notebook/data/hier-pex/flat/a2x8.flat.pex.spice
+29732.74 s wall 29084.07 s cpu 579876 KB
+ALLDONE 08:13:18

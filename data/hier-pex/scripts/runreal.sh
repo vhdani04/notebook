@@ -1,0 +1,2 @@
+source ~/openlayout/flow/env/openlayout.sh >/dev/null 2>&1; export OMP_NUM_THREADS=1 PYTHONPATH=/tmp/xs/olpkg
+for t in $@; do /usr/bin/time -f "%e s wall %U s cpu %M KB" nice -n 19 ionice -c3 ~/openlayout/venv/bin/python3 -m openlayout.pex t$t.gds --out /tmp/xs/w$t.pex.spice --no-cache > w$t.log 2>&1; grep -v "RESULT\|windows [0-9]" w$t.log; ~/openlayout/venv/bin/python3 cmp.py t$t.pex.spice w$t.pex.spice; grep -c "^C" w$t.pex.spice; done; echo ALLDONE

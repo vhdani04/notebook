@@ -1,0 +1,433 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * ring oscillator, 51 stages (array)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+vdd                                        0.7
+x1.s1_6                                    0.7
+x1.s0_4                             0.00143036
+x1.s2_6                            3.90559e-09
+x1.s1_4                                    0.7
+x1.s3_6                                    0.7
+x1.s2_4                            1.01798e-09
+x1.s4_6                            3.90559e-09
+x1.s3_4                                    0.7
+x1.s5_6                                    0.7
+x1.s4_4                            1.01798e-09
+x1.s6_6                            3.90559e-09
+x1.s5_4                                    0.7
+x1.s7_6                                    0.7
+x1.s6_4                            1.01798e-09
+x1.s8_6                            3.90559e-09
+x1.s7_4                                    0.7
+x1.s9_6                                    0.7
+x1.s8_4                            1.01798e-09
+x1.s10_6                           3.90559e-09
+x1.s9_4                                    0.7
+x1.s11_6                                   0.7
+x1.s10_4                           1.01798e-09
+x1.s12_6                           3.90559e-09
+x1.s11_4                                   0.7
+x1.s13_6                                   0.7
+x1.s12_4                           1.01798e-09
+x1.s14_6                           3.90559e-09
+x1.s13_4                                   0.7
+x1.s15_6                                   0.7
+x1.s14_4                           1.01798e-09
+x1.s16_6                           3.90559e-09
+x1.s15_4                                   0.7
+x1.s17_6                                   0.7
+x1.s16_4                           1.01798e-09
+x1.s18_6                           3.90559e-09
+x1.s17_4                                   0.7
+x1.s19_6                                   0.7
+x1.s18_4                           1.01798e-09
+x1.s20_6                           3.90559e-09
+x1.s19_4                                   0.7
+x1.s21_6                                   0.7
+x1.s20_4                           1.01798e-09
+x1.s22_6                           3.90559e-09
+x1.s21_4                                   0.7
+x1.s23_6                                   0.7
+x1.s22_4                           1.01798e-09
+x1.s24_6                           3.90559e-09
+x1.s23_4                                   0.7
+x1.s25_6                                   0.7
+x1.s24_4                           1.01798e-09
+x1.s26_6                           1.25123e-08
+x1.s25_4                                   0.7
+x1.s50_4                           9.49916e-10
+x1.s0_7                              0.0185757
+x1.s49_4                                   0.7
+x1.s50_7                           3.89433e-09
+x1.s48_4                           1.01798e-09
+x1.s49_7                                   0.7
+x1.s47_4                                   0.7
+x1.s48_7                           3.90559e-09
+x1.s46_4                           1.01798e-09
+x1.s47_7                                   0.7
+x1.s45_4                                   0.7
+x1.s46_7                           3.90559e-09
+x1.s44_4                           1.01798e-09
+x1.s45_7                                   0.7
+x1.s43_4                                   0.7
+x1.s44_7                           3.90559e-09
+x1.s42_4                           1.01798e-09
+x1.s43_7                                   0.7
+x1.s41_4                                   0.7
+x1.s42_7                           3.90559e-09
+x1.s40_4                           1.01798e-09
+x1.s41_7                                   0.7
+x1.s39_4                                   0.7
+x1.s40_7                           3.90559e-09
+x1.s38_4                           1.01798e-09
+x1.s39_7                                   0.7
+x1.s37_4                                   0.7
+x1.s38_7                           3.90559e-09
+x1.s36_4                           1.01798e-09
+x1.s37_7                                   0.7
+x1.s35_4                                   0.7
+x1.s36_7                           3.90559e-09
+x1.s34_4                           1.01798e-09
+x1.s35_7                                   0.7
+x1.s33_4                                   0.7
+x1.s34_7                           3.90559e-09
+x1.s32_4                           1.01798e-09
+x1.s33_7                                   0.7
+x1.s31_4                                   0.7
+x1.s32_7                           3.90559e-09
+x1.s30_4                           1.01798e-09
+x1.s31_7                                   0.7
+x1.s29_4                                   0.7
+x1.s30_7                           3.90559e-09
+x1.s28_4                           1.01798e-09
+x1.s29_7                                   0.7
+x1.s27_4                                   0.7
+x1.s28_7                           3.90559e-09
+x1.s26_4                           9.50858e-10
+x1.s27_7                                   0.7
+x1.s1_7                                    0.7
+x1.s0_5                             0.00143036
+x1.s2_7                            7.81326e-09
+x1.s1_5                                    0.7
+x1.s3_7                                    0.7
+x1.s2_5                            1.01035e-09
+x1.s4_7                            7.81326e-09
+x1.s3_5                                    0.7
+x1.s5_7                                    0.7
+x1.s4_5                            1.01035e-09
+x1.s6_7                            7.81326e-09
+x1.s5_5                                    0.7
+x1.s7_7                                    0.7
+x1.s6_5                            1.01035e-09
+x1.s8_7                            7.81326e-09
+x1.s7_5                                    0.7
+x1.s9_7                                    0.7
+x1.s8_5                            1.01035e-09
+x1.s10_7                           7.81326e-09
+x1.s9_5                                    0.7
+x1.s11_7                                   0.7
+x1.s10_5                           1.01035e-09
+x1.s12_7                           7.81326e-09
+x1.s11_5                                   0.7
+x1.s13_7                                   0.7
+x1.s12_5                           1.01035e-09
+x1.s14_7                           7.81326e-09
+x1.s13_5                                   0.7
+x1.s15_7                                   0.7
+x1.s14_5                           1.01035e-09
+x1.s16_7                           7.81326e-09
+x1.s15_5                                   0.7
+x1.s17_7                                   0.7
+x1.s16_5                           1.01035e-09
+x1.s18_7                           7.81326e-09
+x1.s17_5                                   0.7
+x1.s19_7                                   0.7
+x1.s18_5                           1.01035e-09
+x1.s20_7                           7.81326e-09
+x1.s19_5                                   0.7
+x1.s21_7                                   0.7
+x1.s20_5                           1.01035e-09
+x1.s22_7                           7.81326e-09
+x1.s21_5                                   0.7
+x1.s23_7                                   0.7
+x1.s22_5                           1.01035e-09
+x1.s24_7                           7.81326e-09
+x1.s23_5                                   0.7
+x1.s25_7                                   0.7
+x1.s24_5                           1.01035e-09
+x1.s26_7                           1.67013e-08
+x1.s25_5                                   0.7
+x1.s50_5                           9.71463e-10
+x1.s0_6                              0.0245719
+x1.s49_5                                   0.7
+x1.s50_6                           7.80162e-09
+x1.s48_5                           1.01035e-09
+x1.s49_6                                   0.7
+x1.s47_5                                   0.7
+x1.s48_6                           7.81326e-09
+x1.s46_5                           1.01035e-09
+x1.s47_6                                   0.7
+x1.s45_5                                   0.7
+x1.s46_6                           7.81326e-09
+x1.s44_5                           1.01035e-09
+x1.s45_6                                   0.7
+x1.s43_5                                   0.7
+x1.s44_6                           7.81326e-09
+x1.s42_5                           1.01035e-09
+x1.s43_6                                   0.7
+x1.s41_5                                   0.7
+x1.s42_6                           7.81326e-09
+x1.s40_5                           1.01035e-09
+x1.s41_6                                   0.7
+x1.s39_5                                   0.7
+x1.s40_6                           7.81326e-09
+x1.s38_5                           1.01035e-09
+x1.s39_6                                   0.7
+x1.s37_5                                   0.7
+x1.s38_6                           7.81326e-09
+x1.s36_5                           1.01035e-09
+x1.s37_6                                   0.7
+x1.s35_5                                   0.7
+x1.s36_6                           7.81326e-09
+x1.s34_5                           1.01035e-09
+x1.s35_6                                   0.7
+x1.s33_5                                   0.7
+x1.s34_6                           7.81326e-09
+x1.s32_5                           1.01035e-09
+x1.s33_6                                   0.7
+x1.s31_5                                   0.7
+x1.s32_6                           7.81326e-09
+x1.s30_5                           1.01035e-09
+x1.s31_6                                   0.7
+x1.s29_5                                   0.7
+x1.s30_6                           7.81326e-09
+x1.s28_5                           1.01035e-09
+x1.s29_6                                   0.7
+x1.s27_5                                   0.7
+x1.s28_6                           7.81326e-09
+x1.s26_5                           9.43225e-10
+x1.s27_6                                   0.7
+x1.s1_1                                    0.7
+s1                                         0.7
+x1.s1_3                                    0.7
+x1.s1_2                                    0.7
+x1.s2_1                            9.94197e-10
+s2                                           0
+x1.s2_3                            9.23091e-10
+x1.s2_2                            3.97985e-09
+x1.s3_1                                    0.7
+s3                                         0.7
+x1.s3_3                                    0.7
+x1.s3_2                                    0.7
+x1.s4_1                            9.94197e-10
+s4                                           0
+x1.s4_3                            9.23091e-10
+x1.s4_2                            3.97985e-09
+x1.s5_1                                    0.7
+s5                                         0.7
+x1.s5_3                                    0.7
+x1.s5_2                                    0.7
+x1.s6_1                            9.94197e-10
+s6                                           0
+x1.s6_3                            9.23091e-10
+x1.s6_2                            3.97985e-09
+x1.s7_1                                    0.7
+s7                                         0.7
+x1.s7_3                                    0.7
+x1.s7_2                                    0.7
+x1.s8_1                            9.94197e-10
+s8                                           0
+x1.s8_3                            9.23091e-10
+x1.s8_2                            3.97985e-09
+x1.s9_1                                    0.7
+s9                                         0.7
+x1.s9_3                                    0.7
+x1.s9_2                                    0.7
+x1.s10_1                           9.94197e-10
+s10                                          0
+x1.s10_3                           9.23091e-10
+x1.s10_2                           3.97985e-09
+x1.s11_1                                   0.7
+s11                                        0.7
+x1.s11_3                                   0.7
+x1.s11_2                                   0.7
+x1.s12_1                           9.94197e-10
+s12                                          0
+x1.s12_3                           9.23091e-10
+x1.s12_2                           3.97985e-09
+x1.s13_1                                   0.7
+s13                                        0.7
+x1.s13_3                                   0.7
+x1.s13_2                                   0.7
+x1.s14_1                           9.94197e-10
+s14                                          0
+x1.s14_3                           9.23091e-10
+x1.s14_2                           3.97985e-09
+x1.s15_1                                   0.7
+s15                                        0.7
+x1.s15_3                                   0.7
+x1.s15_2                                   0.7
+x1.s16_1                           9.94197e-10
+s16                                          0
+x1.s16_3                           9.23091e-10
+x1.s16_2                           3.97985e-09
+x1.s17_1                                   0.7
+s17                                        0.7
+x1.s17_3                                   0.7
+x1.s17_2                                   0.7
+x1.s18_1                           9.94197e-10
+s18                                          0
+x1.s18_3                           9.23091e-10
+x1.s18_2                           3.97985e-09
+x1.s19_1                                   0.7
+s19                                        0.7
+x1.s19_3                                   0.7
+x1.s19_2                                   0.7
+x1.s20_1                           9.94197e-10
+s20                                          0
+x1.s20_3                           9.23091e-10
+x1.s20_2                           3.97985e-09
+x1.s21_1                                   0.7
+s21                                        0.7
+x1.s21_3                                   0.7
+x1.s21_2                                   0.7
+x1.s22_1                           9.94197e-10
+s22                                          0
+x1.s22_3                           9.23091e-10
+x1.s22_2                           3.97985e-09
+x1.s23_1                                   0.7
+s23                                        0.7
+x1.s23_3                                   0.7
+x1.s23_2                                   0.7
+x1.s24_1                           9.94197e-10
+s24                                          0
+x1.s24_3                           9.23091e-10
+x1.s24_2                           3.97985e-09
+x1.s25_1                                   0.7
+s25                                        0.7
+x1.s25_3                                   0.7
+x1.s25_2                                   0.7
+x1.s26_1                           9.27073e-10
+x1.s26_3                           8.55967e-10
+s26                                          0
+x1.s26_2                           1.28679e-08
+x1.s0_1                             0.00143036
+s0                                           0
+x1.s0_2                             0.00143036
+x1.s0_3                              0.0185757
+x1.s50_1                           9.49829e-10
+x1.s50_2                           9.11155e-10
+s50                                          0
+x1.s50_3                           3.96821e-09
+x1.s49_1                                   0.7
+x1.s49_2                                   0.7
+s49                                        0.7
+x1.s49_3                                   0.7
+x1.s48_1                           9.94197e-10
+x1.s48_2                           9.23091e-10
+s48                                          0
+x1.s48_3                           3.97985e-09
+x1.s47_1                                   0.7
+x1.s47_2                                   0.7
+s47                                        0.7
+x1.s47_3                                   0.7
+x1.s46_1                           9.94197e-10
+x1.s46_2                           9.23091e-10
+s46                                          0
+x1.s46_3                           3.97985e-09
+x1.s45_1                                   0.7
+x1.s45_2                                   0.7
+s45                                        0.7
+x1.s45_3                                   0.7
+x1.s44_1                           9.94197e-10
+x1.s44_2                           9.23091e-10
+s44                                          0
+x1.s44_3                           3.97985e-09
+x1.s43_1                                   0.7
+x1.s43_2                                   0.7
+s43                                        0.7
+x1.s43_3                                   0.7
+x1.s42_1                           9.94197e-10
+x1.s42_2                           9.23091e-10
+s42                                          0
+x1.s42_3                           3.97985e-09
+x1.s41_1                                   0.7
+x1.s41_2                                   0.7
+s41                                        0.7
+x1.s41_3                                   0.7
+x1.s40_1                           9.94197e-10
+x1.s40_2                           9.23091e-10
+s40                                          0
+x1.s40_3                           3.97985e-09
+x1.s39_1                                   0.7
+x1.s39_2                                   0.7
+s39                                        0.7
+x1.s39_3                                   0.7
+x1.s38_1                           9.94197e-10
+x1.s38_2                           9.23091e-10
+s38                                          0
+x1.s38_3                           3.97985e-09
+x1.s37_1                                   0.7
+x1.s37_2                                   0.7
+s37                                        0.7
+x1.s37_3                                   0.7
+x1.s36_1                           9.94197e-10
+x1.s36_2                           9.23091e-10
+s36                                          0
+x1.s36_3                           3.97985e-09
+x1.s35_1                                   0.7
+x1.s35_2                                   0.7
+s35                                        0.7
+x1.s35_3                                   0.7
+x1.s34_1                           9.94197e-10
+x1.s34_2                           9.23091e-10
+s34                                          0
+x1.s34_3                           3.97985e-09
+x1.s33_1                                   0.7
+x1.s33_2                                   0.7
+s33                                        0.7
+x1.s33_3                                   0.7
+x1.s32_1                           9.94197e-10
+x1.s32_2                           9.23091e-10
+s32                                          0
+x1.s32_3                           3.97985e-09
+x1.s31_1                                   0.7
+x1.s31_2                                   0.7
+s31                                        0.7
+x1.s31_3                                   0.7
+x1.s30_1                           9.94197e-10
+x1.s30_2                           9.23091e-10
+s30                                          0
+x1.s30_3                           3.97985e-09
+x1.s29_1                                   0.7
+x1.s29_2                                   0.7
+s29                                        0.7
+x1.s29_3                                   0.7
+x1.s28_1                           9.94197e-10
+x1.s28_2                           9.23091e-10
+s28                                          0
+x1.s28_3                           3.97985e-09
+x1.s27_1                                   0.7
+x1.s27_2                                   0.7
+s27                                        0.7
+x1.s27_3                                   0.7
+vdd#branch                        -9.43827e-05
+
+ Reference value :  0.00000e+00 Reference value :  1.92800e-11 Reference value :  4.72800e-11 Reference value :  7.82800e-11 Reference value :  1.10280e-10 Reference value :  1.41280e-10 Reference value :  1.72280e-10 Reference value :  2.04280e-10 Reference value :  2.36280e-10 Reference value :  2.67280e-10 Reference value :  2.99280e-10 Reference value :  3.30280e-10 Reference value :  3.57280e-10 Reference value :  3.87280e-10 Reference value :  4.19280e-10 Reference value :  4.49280e-10 Reference value :  4.80280e-10 Reference value :  5.12280e-10 Reference value :  5.41280e-10 Reference value :  5.72280e-10 Reference value :  6.00280e-10 Reference value :  6.32280e-10 Reference value :  6.63280e-10 Reference value :  6.93280e-10 Reference value :  7.23280e-10 Reference value :  7.52280e-10 Reference value :  7.82280e-10 Reference value :  8.14280e-10 Reference value :  8.44280e-10 Reference value :  8.74280e-10 Reference value :  9.04280e-10 Reference value :  9.34280e-10 Reference value :  9.65280e-10 Reference value :  9.96280e-10 Reference value :  1.02328e-09 Reference value :  1.05328e-09 Reference value :  1.08328e-09 Reference value :  1.11328e-09 Reference value :  1.14328e-09 Reference value :  1.17328e-09 Reference value :  1.20528e-09 Reference value :  1.23528e-09 Reference value :  1.26728e-09 Reference value :  1.29728e-09 Reference value :  1.32628e-09 Reference value :  1.35728e-09 Reference value :  1.38628e-09 Reference value :  1.41528e-09 Reference value :  1.44328e-09 Reference value :  1.47428e-09 Reference value :  1.50528e-09 Reference value :  1.53428e-09 Reference value :  1.56428e-09 Reference value :  1.59128e-09 Reference value :  1.61928e-09 Reference value :  1.64728e-09 Reference value :  1.67628e-09 Reference value :  1.70228e-09 Reference value :  1.73428e-09 Reference value :  1.76628e-09 Reference value :  1.79628e-09 Reference value :  1.82628e-09 Reference value :  1.85828e-09 Reference value :  1.88928e-09 Reference value :  1.92128e-09 Reference value :  1.95128e-09 Reference value :  1.98328e-09 Reference value :  2.01428e-09 Reference value :  2.04428e-09 Reference value :  2.07428e-09 Reference value :  2.10428e-09 Reference value :  2.13428e-09 Reference value :  2.16428e-09 Reference value :  2.19328e-09 Reference value :  2.22328e-09 Reference value :  2.25428e-09 Reference value :  2.28428e-09 Reference value :  2.31428e-09 Reference value :  2.34428e-09 Reference value :  2.36928e-09 Reference value :  2.39728e-09 Reference value :  2.42528e-09 Reference value :  2.45428e-09 Reference value :  2.48428e-09 Reference value :  2.51328e-09 Reference value :  2.54128e-09 Reference value :  2.57128e-09 Reference value :  2.60228e-09 Reference value :  2.63328e-09 Reference value :  2.66428e-09 Reference value :  2.69428e-09 Reference value :  2.72628e-09 Reference value :  2.75628e-09 Reference value :  2.78628e-09 Reference value :  2.81528e-09 Reference value :  2.84428e-09 Reference value :  2.87428e-09 Reference value :  2.90428e-09 Reference value :  2.93428e-09 Reference value :  2.96028e-09 Reference value :  2.97828e-09 Reference value :  2.99828e-09 Reference value :  3.01728e-09 Reference value :  3.04428e-09 Reference value :  3.07328e-09 Reference value :  3.09828e-09 Reference value :  3.12528e-09 Reference value :  3.15128e-09 Reference value :  3.17428e-09 Reference value :  3.19628e-09 Reference value :  3.22028e-09 Reference value :  3.24128e-09 Reference value :  3.26228e-09 Reference value :  3.28728e-09 Reference value :  3.30728e-09 Reference value :  3.33328e-09 Reference value :  3.36528e-09 Reference value :  3.39528e-09 Reference value :  3.42728e-09 Reference value :  3.45728e-09 Reference value :  3.48328e-09 Reference value :  3.50728e-09 Reference value :  3.53528e-09 Reference value :  3.56028e-09 Reference value :  3.58328e-09 Reference value :  3.60928e-09 Reference value :  3.63328e-09 Reference value :  3.65728e-09 Reference value :  3.68328e-09 Reference value :  3.70828e-09 Reference value :  3.73428e-09 Reference value :  3.75728e-09 Reference value :  3.78428e-09 Reference value :  3.80728e-09 Reference value :  3.82928e-09 Reference value :  3.85428e-09 Reference value :  3.87928e-09 Reference value :  3.90528e-09 Reference value :  3.93028e-09 Reference value :  3.95628e-09 Reference value :  3.98228e-09 Reference value :  4.00928e-09 Reference value :  4.03628e-09 Reference value :  4.06228e-09 Reference value :  4.08828e-09 Reference value :  4.11428e-09 Reference value :  4.14228e-09 Reference value :  4.16928e-09 Reference value :  4.19528e-09 Reference value :  4.22228e-09 Reference value :  4.24928e-09 Reference value :  4.27628e-09 Reference value :  4.30128e-09 Reference value :  4.32428e-09 Reference value :  4.34728e-09 Reference value :  4.37328e-09 Reference value :  4.39928e-09 Reference value :  4.42528e-09 Reference value :  4.45228e-09 Reference value :  4.47928e-09 Reference value :  4.50628e-09 Reference value :  4.53328e-09 Reference value :  4.55928e-09 Reference value :  4.58628e-09 Reference value :  4.61328e-09 Reference value :  4.64028e-09 Reference value :  4.66628e-09 Reference value :  4.69128e-09 Reference value :  4.71828e-09 Reference value :  4.74528e-09 Reference value :  4.77128e-09 Reference value :  4.79828e-09 Reference value :  4.82428e-09 Reference value :  4.84928e-09 Reference value :  4.87628e-09 Reference value :  4.90128e-09 Reference value :  4.92728e-09 Reference value :  4.95028e-09 Reference value :  4.97528e-09 Reference value :  5.00128e-09 Reference value :  5.02828e-09 Reference value :  5.05528e-09 Reference value :  5.08128e-09 Reference value :  5.10828e-09 Reference value :  5.13328e-09 Reference value :  5.16028e-09 Reference value :  5.18728e-09 Reference value :  5.21428e-09 Reference value :  5.24128e-09 Reference value :  5.26828e-09 Reference value :  5.29528e-09 Reference value :  5.32228e-09 Reference value :  5.34828e-09 Reference value :  5.37528e-09 Reference value :  5.40128e-09 Reference value :  5.42828e-09 Reference value :  5.45428e-09 Reference value :  5.48028e-09 Reference value :  5.50728e-09 Reference value :  5.52928e-09 Reference value :  5.55428e-09 Reference value :  5.57828e-09 Reference value :  5.60428e-09 Reference value :  5.62928e-09 Reference value :  5.65428e-09 Reference value :  5.67928e-09 Reference value :  5.70428e-09 Reference value :  5.72928e-09 Reference value :  5.75428e-09 Reference value :  5.78128e-09 Reference value :  5.80528e-09 Reference value :  5.82828e-09 Reference value :  5.85428e-09 Reference value :  5.88028e-09 Reference value :  5.90428e-09 Reference value :  5.92928e-09 Reference value :  5.95228e-09 Reference value :  5.97528e-09 Reference value :  5.99628e-09 Reference value :  6.01928e-09 Reference value :  6.04028e-09 Reference value :  6.06428e-09 Reference value :  6.08828e-09 Reference value :  6.11128e-09 Reference value :  6.13628e-09 Reference value :  6.16128e-09 Reference value :  6.18328e-09 Reference value :  6.20328e-09 Reference value :  6.22628e-09 Reference value :  6.25128e-09 Reference value :  6.27428e-09 Reference value :  6.29828e-09 Reference value :  6.32128e-09 Reference value :  6.34528e-09 Reference value :  6.36928e-09 Reference value :  6.39428e-09 Reference value :  6.41528e-09 Reference value :  6.44028e-09 Reference value :  6.46428e-09 Reference value :  6.48728e-09 Reference value :  6.51028e-09 Reference value :  6.53628e-09 Reference value :  6.56128e-09 Reference value :  6.58628e-09 Reference value :  6.61228e-09 Reference value :  6.63728e-09 Reference value :  6.66228e-09 Reference value :  6.68728e-09 Reference value :  6.71528e-09 Reference value :  6.74128e-09 Reference value :  6.76828e-09 Reference value :  6.79528e-09 Reference value :  6.82228e-09 Reference value :  6.84828e-09 Reference value :  6.87428e-09 Reference value :  6.90128e-09 Reference value :  6.92428e-09 Reference value :  6.95028e-09 Reference value :  6.97728e-09 Reference value :  7.00328e-09 Reference value :  7.02528e-09 Reference value :  7.05028e-09 Reference value :  7.07628e-09 Reference value :  7.09928e-09 Reference value :  7.12428e-09 Reference value :  7.15028e-09 Reference value :  7.17528e-09 Reference value :  7.20028e-09 Reference value :  7.22328e-09 Reference value :  7.24828e-09 Reference value :  7.27228e-09 Reference value :  7.29428e-09 Reference value :  7.31528e-09 Reference value :  7.34128e-09 Reference value :  7.36628e-09 Reference value :  7.39428e-09 Reference value :  7.41828e-09 Reference value :  7.43828e-09 Reference value :  7.46428e-09 Reference value :  7.49128e-09 Reference value :  7.51728e-09 Reference value :  7.54228e-09 Reference value :  7.56528e-09 Reference value :  7.58728e-09 Reference value :  7.61128e-09 Reference value :  7.63528e-09 Reference value :  7.66028e-09 Reference value :  7.68528e-09 Reference value :  7.71028e-09 Reference value :  7.73428e-09 Reference value :  7.75928e-09 Reference value :  7.78528e-09 Reference value :  7.81128e-09 Reference value :  7.83728e-09 Reference value :  7.86328e-09 Reference value :  7.88828e-09 Reference value :  7.91328e-09 Reference value :  7.93828e-09 Reference value :  7.96328e-09 Reference value :  7.98828e-09
+No. of Data Rows : 8008
+t4                  =  1.89975e-09
+t10                 =  5.69344e-09
+period = 6.322818e-10
+stage = 6.198842e-12
+Note: Simulation executed from .control section 

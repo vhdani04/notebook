@@ -1,0 +1,12 @@
+big/a64x80.h0.1.pex.spice: 10529 pins, 179105 nodes, 153216 resistors, 51200 transistors, 179105 nodes with capacitors
+  nodes on capacitors only (floating): 0 []
+  nodes without a DC path to a pin: 0 []
+  nets whose R network is in more than one piece: 0 []
+per-net totals against win/a8x8.h0.1.pex.spice (8x8), scaled:
+  WL per cell (WL_r / cols)          big: n=   64 median 0.3379 fF (min 0.3373, max 0.3385)   small: median 0.3382 fF   ratio 0.999
+  BL per row (BL_c / rows)           big: n=   80 median 0.0854 fF (min 0.0818, max 0.0854)   small: median 0.0860 fF   ratio 0.993
+  BLB per row                        big: n=   80 median 0.1139 fF (min 0.1117, max 0.1140)   small: median 0.1149 fF   ratio 0.991
+  XB per cell                        big: n= 5120 median 0.1721 fF (min 0.1700, max 0.1731)   small: median 0.1721 fF   ratio 1.000
+  P per cell                         big: n= 5120 median 0.1935 fF (min 0.1915, max 0.1936)   small: median 0.1935 fF   ratio 1.000
+  VDD rail per cell (VDD_k / cols)   big: n=   32 median 0.2972 fF (min 0.2972, max 0.2976)   small: median 0.2976 fF   ratio 0.999
+6.52 s 171552 KB

@@ -1,0 +1,35 @@
+total C, signal nets + VDD (99): mean |err| 0.45 %, max 1.53 %, mean -0.11 %
+  worst labelled: XB_1_7 -1.51 %, WL_0 +1.18 %, XB_0_2 +1.12 %, BL_0 +1.01 %, BL_2 +0.98 %, BL_7 +0.97 %
+  unlabelled (internal Q / QB ..., sorted pairs, 48): mean |err| 0.46 %, max 1.53 %
+  VSS rails (not in the above): -6.3 %, +0.9 %
+  WL   total C: n=  2 mean +1.06 %, max |err| 1.18 %
+  BL   total C: n=  8 mean +0.81 %, max |err| 1.01 %
+  BLB  total C: n=  8 mean +0.13 %, max |err| 0.47 %
+  XB   total C: n= 16 mean -0.07 %, max |err| 1.51 %
+  P    total C: n= 16 mean -0.23 %, max |err| 0.67 %
+  VDD  total C: n=  1 mean +0.74 %, max |err| 0.74 %
+coupling C between labelled nets, pairs >= 1 % of either net's total (flat):
+  VSS -WL   n=  3  flat   1.4466 fF  windowed   1.4878 fF ( +2.85 %)  per pair mean |err|  2.86 %, worst VSS_0-WL_1 0.6990 -> 0.7199 fF
+  P   -VSS  n= 24  flat   1.2418 fF  windowed   1.2745 fF ( +2.64 %)  per pair mean |err|  2.21 %, worst P_0_2-VSS_0 0.0768 -> 0.0800 fF
+  VSS -XB   n= 24  flat   1.0157 fF  windowed   1.0312 fF ( +1.52 %)  per pair mean |err|  2.15 %, worst VSS_2-XB_1_0 0.0159 -> 0.0150 fF
+  BLB -VSS  n= 16  flat   0.6035 fF  windowed   0.6374 fF ( +5.62 %)  per pair mean |err|  3.93 %, worst BLB_3-VSS_0 0.0591 -> 0.0639 fF
+  BL  -VSS  n= 16  flat   0.5420 fF  windowed   0.5725 fF ( +5.63 %)  per pair mean |err|  3.86 %, worst BL_5-VSS_0 0.0544 -> 0.0587 fF
+  BLB -WL   n= 16  flat   0.4251 fF  windowed   0.4335 fF ( +1.98 %)  per pair mean |err|  1.98 %, worst BLB_7-WL_1 0.0263 -> 0.0272 fF
+  BL  -WL   n= 16  flat   0.4148 fF  windowed   0.4291 fF ( +3.44 %)  per pair mean |err|  3.45 %, worst BL_7-WL_1 0.0255 -> 0.0268 fF
+  VDD -XB   n= 16  flat   0.3960 fF  windowed   0.4024 fF ( +1.61 %)  per pair mean |err|  2.15 %, worst VDD_1-XB_1_5 0.0241 -> 0.0251 fF
+  P   -XB   n= 16  flat   0.2909 fF  windowed   0.2941 fF ( +1.10 %)  per pair mean |err|  1.76 %, worst P_0_7-XB_0_7 0.0178 -> 0.0186 fF
+  BLB -P    n= 16  flat   0.2884 fF  windowed   0.2919 fF ( +1.19 %)  per pair mean |err|  1.19 %, worst BLB_6-P_0_6 0.0179 -> 0.0182 fF
+  VDD -WL   n=  2  flat   0.2487 fF  windowed   0.2481 fF ( -0.24 %)  per pair mean |err|  1.86 %, worst VDD_1-WL_1 0.1264 -> 0.1237 fF
+  BLB -XB   n= 16  flat   0.2477 fF  windowed   0.2466 fF ( -0.46 %)  per pair mean |err|  0.51 %, worst BLB_5-XB_0_5 0.0155 -> 0.0153 fF
+  P   -VDD  n= 16  flat   0.1620 fF  windowed   0.1637 fF ( +1.03 %)  per pair mean |err|  1.68 %, worst P_1_1-VDD_1 0.0098 -> 0.0103 fF
+  P   -WL   n= 16  flat   0.1005 fF  windowed   0.1021 fF ( +1.65 %)  per pair mean |err|  2.02 %, worst P_0_0-WL_0 0.0060 -> 0.0063 fF
+  BL  -BLB  n=  7  flat   0.0858 fF  windowed   0.0876 fF ( +2.09 %)  per pair mean |err|  2.09 %, worst BLB_4-BL_5 0.0122 -> 0.0125 fF
+  WL  -XB   n= 16  flat   0.0839 fF  windowed   0.0835 fF ( -0.48 %)  per pair mean |err|  3.87 %, worst WL_1-XB_1_7 0.0049 -> 0.0053 fF
+  BL  -XB   n= 14  flat   0.0323 fF  windowed   0.0330 fF ( +1.98 %)  per pair mean |err|  2.52 %, worst BL_5-XB_0_4 0.0022 -> 0.0024 fF
+  BL  -VDD  n=  1  flat   0.0019 fF  windowed   0.0019 fF ( +2.26 %)  per pair mean |err|  2.26 %, worst BL_0-VDD_1 0.0019 -> 0.0019 fF
+P total-C error by cell (%), top row first:
+    -0.3  -0.2  -0.3  -0.7  -0.3  -0.5  -0.1  -0.2
+    -0.1  -0.1  -0.1  -0.1  -0.3  -0.2  -0.5  +0.1
+XB total-C error by cell (%), top row first:
+    -0.8  -0.6  -0.1  -0.7  -0.4  -0.2  -0.6  -1.5
+    +0.9  +0.5  +1.1  +0.0  +0.7  +0.5  +0.0  -0.1

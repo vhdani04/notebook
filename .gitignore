@@ -20,3 +20,7 @@
 *~
 .*.swp
 .DS_Store
+
+# large regenerable PEX outputs (kept on the VM, not in git)
+data/hier-pex/big/
+data/hier-pex/netlists/

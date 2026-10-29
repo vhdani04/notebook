@@ -1,0 +1,7 @@
+
+Warning: memory required (4.5822 GB), made of
+       133699 nodes and approximately 4.60000e3 time steps,
+       is more than the DRAM memory available (288.34 MB)!
+       Swapping data to SSD may slow down the simulation.
+Command exited with non-zero status 124
+2400.19 s wall 674800 KB

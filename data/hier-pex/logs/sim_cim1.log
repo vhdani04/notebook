@@ -1,0 +1,67 @@
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+Note: No compatibility mode selected!
+
+
+Circuit: * timing
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+vdd                                        0.7
+bl                                         0.7
+blb                                          0
+wl                                           0
+xb                                         0.7
+x1.net3_7                             0.362439
+x1.p_3                             3.65924e-08
+x1.p_4                               3.636e-08
+x1.xb_2                                    0.7
+x1.net2_4                             0.362413
+x1.wl_2                            1.80662e-10
+x1.bl_1                                    0.7
+x1.net3_5                             0.362435
+x1.net3_9                              0.36238
+x1.net2_2                             0.362435
+x1.bl_bar_1                        1.11163e-10
+x1.wl_3                            1.04524e-10
+x1.net11                              0.361473
+x1.net3_8                             0.362439
+x1.p_5                             3.71264e-08
+x1.xb_3                                    0.7
+x1.net3_6                             0.362435
+x1.net2_6                              0.36246
+x1.net3_11                            0.362478
+x1.net2_3                             0.362435
+x1.net2                               0.362435
+x1.net2_7                             0.362435
+x1.net3                               0.362435
+x1.net3_2                             0.362439
+x1.net3_4                             0.362435
+x1.net3_3                             0.362439
+x1.p_2                             3.67494e-08
+x1.p_1                             3.65981e-08
+p                                  3.67494e-08
+x1.xb_1                                    0.7
+x1.wl_1                            9.11688e-11
+vxb#branch                         -4.0065e-13
+vwl#branch                         1.22614e-12
+vblb#branch                         7.3527e-13
+vbl#branch                        -1.45078e-11
+vdd#branch                        -1.12011e-06
+
+ Reference value :  2.73280e-10 Reference value :  6.88500e-10 Reference value :  1.20050e-09 Reference value :  2.60010e-09 Reference value :  2.86250e-09 Reference value :  3.88650e-09 Reference value :  4.36650e-09 Reference value :  4.99750e-09 Reference value :  5.61450e-09 Reference value :  6.04550e-09 Reference value :  6.69750e-09 Reference value :  7.22250e-09 Reference value :  7.76450e-09 Reference value :  9.26350e-09 Reference value :  9.49450e-09 Reference value :  1.00765e-08 Reference value :  1.04755e-08 Reference value :  1.11115e-08 Reference value :  1.14825e-08 Reference value :  1.19685e-08
+No. of Data Rows : 12134
+
+Error: measure  tp  when(WHEN) : out of interval
+ meas tran tp when v(p)=0.35 rise=1 failed!
+
+Note: Simulation executed from .control section 
+cim1 WALL 0.85 s

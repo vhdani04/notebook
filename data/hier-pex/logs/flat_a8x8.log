@@ -1,0 +1,5 @@
+== flat a8x8 start 23:57:46
+PEX A8x8: layout /tmp/xs/a8x8.gds
+  extracted: 640 transistors, 737 nets (4.3 s)
+ALLDONE 00:50:29
+STOPPED 00:50:32: flat 8x8 would need ~85000 CPU-s (n^2 from 1x8 1964 CPU-s), not feasible overnight

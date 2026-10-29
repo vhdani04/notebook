@@ -1,0 +1,34 @@
+* INVx1_ASAP7_75t_R - parasitic extraction by OpenLayout (openlayout pex, mode rc)
+* layout: /home/vhdani/openlayout/pdk/asap7/asap7sc7p5t_28/GDS/asap7sc7p5t_28_R_220121a.gds
+* C: FasterCap 3D field solver (k = 4.6 front end, 3.23 above z = 0.074 um); R: KLayout RNetExtractor, reference sheet / via resistances
+* 2 transistors, 5 resistors, 19 capacitors
+* total capacitance per net (fF): A 0.2171, VDD 0.1155, VSS 0.3654, Y 0.1666
+
+.subckt INVx1_ASAP7_75t_R A VDD VSS Y
+N1 Y_1 A_2 VSS VSS nmos_rvt l=20n nfin=3
+N2 Y_2 A_3 VDD VDD pmos_rvt l=20n nfin=3
+R1 A_3 A_1 22.9598
+R2 A_1 A_2 22.9598
+R3 A_1 A 38.3147
+R4 Y_1 Y 58.7516
+R5 Y_2 Y 68.311
+C1 A VDD 0.0233339f
+C2 A VSS 0.0495611f
+C3 A Y_2 0.0351306f
+C4 A_1 VDD 0.00771665f
+C5 A_1 VSS 0.0163902f
+C6 A_1 Y 0.0116179f
+C7 A_2 VDD 0.00791811f
+C8 A_2 VSS 0.016818f
+C9 A_2 Y_1 0.0119212f
+C10 A_3 VDD 0.00791811f
+C11 A_3 VSS 0.016818f
+C12 A_3 Y_2 0.0119212f
+C13 VDD VSS 0.0503476f
+C14 VDD Y 0.00714283f
+C15 VDD Y_1 0.00556758f
+C16 VDD Y_2 0.00556758f
+C17 VSS Y 0.0303748f
+C18 VSS Y_1 0.0236761f
+C19 VSS Y_2 0.0236761f
+.ends

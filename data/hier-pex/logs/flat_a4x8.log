@@ -1,0 +1,4 @@
+== flat a4x8 start 23:57:46
+PEX A4x8: layout /tmp/xs/a4x8.gds
+  extracted: 320 transistors, 377 nets (4.8 s)
+2026-10-17 18:16:09 flat a4x8 and t4x8 stopped unfinished at the user request (see REPORT.md section 8)

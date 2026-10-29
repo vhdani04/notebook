@@ -1,0 +1,8 @@
+== a64x80 rc halo 0.1 00:50:07
+A64x80 halo 0.1: 5120 windows, 0 solved, 12 cached, halo used (0.116, 0.134), 1463081 C, 570 s
+574.72 s wall 2180404 KB
+== a64x80 c-only halo 0.1 00:59:42
+  windows: 5120 of 0.54 x 0.27 um at (0.006, 0.254) (+0.116 / 0.134 um), 0 solved (up to 0 conductors), 5108 alike, 12 from the cache (130.2 s); 420771 of 1587891 couplings kept
+  capacitance: FasterCap, 56609 conductors (338.2 s)
+483.27 s wall 2145196 KB
+ALLDONE 01:07:45
