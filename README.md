@@ -12,6 +12,7 @@ project's PDF is attached to the [`latest` release](https://github.com/vhdani04/
 | --- | --- | --- |
 | SRAM compute-in-memory macro in ASAP7, built with [OpenLayout](https://github.com/vhdani04/OpenLayout) | [`sram-cim/`](sram-cim) | [sram-cim.pdf](https://github.com/vhdani04/notebook/releases/download/latest/sram-cim.pdf) |
 | ML-based floor-planning for a small-scale SoC | [`ml-soc/`](ml-soc) | [ml-soc.pdf](https://github.com/vhdani04/notebook/releases/download/latest/ml-soc.pdf) |
+| [OpenLayout](https://github.com/vhdani04/OpenLayout), the open-source ASAP7 custom-layout flow the other projects are built with: its bugs, fixes and measurements | [`openlayout/`](openlayout) | [openlayout.pdf](https://github.com/vhdani04/notebook/releases/download/latest/openlayout.pdf) |
 
 Each folder holds `notebook.tex` (the single source for the PDF and the web page), plus
 `scripts/` and `data/` for whatever the entries reference.

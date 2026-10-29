@@ -1,0 +1,145 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{float}
+
+\definecolor{notecol}{rgb}{0.15,0.35,0.6}
+\definecolor{todocol}{rgb}{0.7,0.3,0.0}
+
+% One decision / measurement per entry, appended at the end in date order:
+%   \entry{ID. Title}{YYYY-MM-DD}{anchor}{Topic}
+% IDs: D decision, M measurement, O open, T tooling. Fields in the order listed below.
+% A new date starts a new day heading; \topicindex lists the entries by topic.
+\makeatletter
+\newcommand{\nb@lastdate}{}
+\def\nb@topics{}
+\newcommand{\entry}[4]{%
+  \def\nb@date{#2}%
+  \ifx\nb@date\nb@lastdate\else
+    \section*{#2}\addcontentsline{toc}{section}{#2}%
+    \global\let\nb@lastdate\nb@date
+  \fi
+  \subsection*{#1 \hfill \small\normalfont\textsc{#4}}%
+  \addcontentsline{toc}{subsection}{#1}\label{#3}%
+  \nb@addtopic{#4}{#1}{#3}}
+\newcommand{\nb@addtopic}[3]{%
+  \@ifundefined{nb@topic@#1}{%
+    \expandafter\gdef\csname nb@topic@#1\endcsname{}%
+    \g@addto@macro\nb@topics{\nb@printtopic{#1}}}{}%
+  \expandafter\g@addto@macro\csname nb@topic@#1\endcsname{\item \hyperref[#3]{#2}}}
+\newcommand{\nb@printtopic}[1]{\item[#1]%
+  \begin{itemize}[nosep]\csname nb@topic@#1\endcsname\end{itemize}}
+\newcommand{\topicindex}{\ifx\nb@topics\@empty\else
+  \section*{Entries by topic}\addcontentsline{toc}{section}{Entries by topic}%
+  \begin{description}[style=nextline]\nb@topics\end{description}\fi}
+\makeatother
+\newcommand{\field}[1]{\par\smallskip\noindent\textbf{#1.}\ }
+\newcommand{\verify}[1]{\textcolor{todocol}{[to verify: #1]}}
+\newcommand{\file}[1]{\texttt{\detokenize{#1}}}
+
+\title{Lab Notebook: OpenLayout, an Open-Source Custom-Layout Flow for ASAP7}
+\author{Daniel Vigna}
+\date{Started 2026-10-14}
+
+\begin{document}
+\maketitle
+
+\section*{How this notebook works}
+Every design decision and every measurement gets one entry, written when it happens and appended in date order. Each day starts a new heading, and every entry names the topic it touches (see \emph{Entries by topic} at the end). The fields of an entry:
+\begin{description}[leftmargin=2em, style=nextline]
+  \item[Question] what was being decided or measured.
+  \item[Options] the alternatives considered.
+  \item[Method] tool, testbench, corner, and the script or file that reproduces it.
+  \item[Result] the numbers.
+  \item[Decision] what was chosen and why.
+  \item[Revisit if] the condition that would reopen it.
+\end{description}
+Tooling entries (T) are shorter: the symptom, the cause, the fix and the commit.
+Claims that are reasoning but not yet measured are marked \verify{like this}.
+Scripts and raw data live in \file{data/}, next to this file (\file{~/papers/notebook/openlayout} on the VM).
+
+\paragraph{Project.}
+\href{https://github.com/vhdani04/OpenLayout}{OpenLayout} is an open-source full-custom flow for the ASAP7 predictive 7\,nm PDK:
+xschem for schematics, KLayout for layout (with OpenLayout's own transistor PCells, DRC, LVS, design-rule-driven hints and routing helpers),
+FasterCap for 3D capacitance extraction, and ngspice for simulation (OLSim).
+This notebook records how the tool itself develops: the bugs found while designing the SRAM compute-in-memory macro
+(the \file{sram-cim} notebook), why they happened and how they were fixed, and the measurements behind each new capability.
+It is the evidence base for a paper on the tool.
+Entries before 2026-10-28 were written up from the commits, the CHANGELOG and the raw data on that date.
+
+\tableofcontents
+
+\entry{T1. Symbol pins on the wire grid; copying several objects}{2026-10-14}{t1}{Schematic}
+\field{Symptom} Wires could not reach symbol pins, and \texttt{c} on a multi-object selection copied only one object.
+\field{Cause} The symbol editor snaps at 2.5 while schematic wires snap at 10, so pins drawn there sat off the wire grid. xschem's cadence-compatible button release trimmed the selection on a command click.
+\field{Fix} Selected pins move on 10 and saving a symbol snaps strays (stubs kept straight, one undo); two xschem patches keep the selection and make \texttt{move\_objects} ignore a stale drag. Commit \file{dc53d6b}; also the \file{sram-cim} notebook, T1.
+
+\entry{M1. Windowed PEX against flat}{2026-10-15}{m1}{PEX}
+\field{Question} Flat FasterCap time grows as (nets)$^{1.8\text{--}2.3}$ (\file{sram-cim} M1), so arrays beyond a few cells cannot be extracted. Does solving the capacitances window by window keep flat accuracy?
+\field{Method} The cell is cut into windows the size of the most-placed cell, each solved with a halo of context; alike windows (same geometry and context, nets renumbered) are solved once and cached. Tiles of the 10T CIM cell SRAMCIMsbc (odd rows mirrored), compared net by net with a flat solve (\file{cmp.py}); P delays from \file{gen_tb.py}; a 51-stage INVx1 ring oscillator (\file{ring.py}). Scripts in \file{data/hier-pex/scripts/}; full report: \file{data/hier-pex/REPORT.md}.
+\field{Result}
+\begin{table}[H]\centering\footnotesize
+\begin{tabular}{lrrrrl}
+\toprule
+Tile & Nets & Flat & Windows / solved & Windowed & Total C vs.\ flat \\
+\midrule
+$1\times8$ & 107 & 322\,s & 8 / 3 & 37\,s & mean 0.4\,\%, max 1.5\,\% \\
+$2\times8$ & 197 & 971\,s & 16 / 6 & 166\,s (54\,s, 6 jobs) & mean 0.5\,\%, max 1.7\,\% \\
+$4\times8$ & 377 & stopped (M2) & 32 / 12 & 539\,s (205\,s, 6 jobs) & -- \\
+$64\times80$ & 56\,609 & -- & 5\,120 / 12 & 575\,s from cache & within 1\,\% of $8\times8$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+P delays (tpr/tpf) are within 0.5\,\% of flat in every cell of $1\times8$ and $2\times8$; corners and edges are no worse than the middle. The halo hardly matters between 0.10 and 0.20\,$\mu$m. Couplings between specific nets move by up to 4\,\% (BL--WL) while totals stay within 1.7\,\%: windowing shifts a little capacitance between a net's neighbours at window edges.
+The ring oscillator is the exception: windowed stage nodes are 3.7\,\% low on average and the period 1.2\,\% short (624.7 vs.\ 632.3\,ps flat).
+VSS comes out 7--9\,\% low because the flat solve's substrate plate reaches 0.3\,$\mu$m past the block. It is the ground node, so it enters no simulation.
+\field{Decision} Ship windowed PEX as the default above 48 nets (\texttt{--cap auto}), halo 0.10\,$\mu$m (widened per axis until the context's edges cross wires), couplings under 0.5\,\% of both totals folded to ground. Commit \file{64b50e2}; \file{docs/PEX.md}, \emph{Large blocks}.
+\field{Revisit if} narrow cells: the ring's windows are one INVx1 wide (0.162\,$\mu$m), so most of each net sits near a window edge \verify{a 2--4-cell \texttt{--window} removes the ring's underestimate}.
+
+\entry{M2. Flat $4\times8$ did not finish}{2026-10-17}{m2}{PEX}
+\field{Question} Where does flat extraction stop being usable?
+\field{Method} Two flat $4\times8$ references (377 nets, FasterCap \texttt{-a0.05}, same settings as every other run), started 2026-10-14 on the 8-vCPU VM.
+\field{Result} Both were stopped unfinished on 2026-10-17 after about 66\,h wall time and 61--72 CPU-hours, because they made the VM too slow to work on. For comparison, flat $1\times8$ took 0.55 CPU-hours and $2\times8$ 8.1. Going from $2\times8$ to $4\times8$ (1.9$\times$ the nets) cost more than 8.9$\times$ the CPU time, against 3.6$\times$ for nets-squared scaling. FasterCap used 1.1--1.5 cores per run whatever thread count it was given.
+\field{Decision} No flat reference beyond $2\times8$; validate windowed PEX on tiles that flat can finish.
+
+\entry{T2. LVS: mixed-case nets split}{2026-10-17}{t2}{LVS}
+\field{Symptom} LVS of the 2-bit cell lost pins named \texttt{X\_bar} and \texttt{BL\_Bar}.
+\field{Cause} KLayout upper-cases a \texttt{.subckt}'s pins, but the ASAP7 netlist reader passed the transistors' nets as written, so each mixed-case net became two and \texttt{purge} dropped the pin.
+\field{Fix} The reader upper-cases the transistors' nets too. Commit \file{9956a2c}.
+
+\entry{T3. Pin placement and moving whole arrays}{2026-10-17}{t3}{Layout}
+\field{Symptom} The $4\times8$ array has 96 pin bits, which were placed one by one. Dragging the array took 3.7\,s per mouse move (one cell inside it 1\,s), because the design-rule hints were recomputed for every shape at every step.
+\field{Fix} \emph{Place Pins\ldots} places whole buses at once: on each net's terminals, on its wire ends, or along a side of the cell (on M4--M7 onto the SADP tracks), with one undo. The hints skip shapes farther apart than the rule, keep the shapes that stay put for the whole move and merge the moved ones once; a moved instance draws at most 100 shapes. The array now takes 9\,ms per mouse move. Commit \file{4d80f31}.
+
+\entry{T4. Show Layer Grid}{2026-10-17}{t4}{Layout}
+\field{Symptom} Nothing in the editor showed where M4--M7 wires may go. M4 is SADP: a 24\,nm wire must have its lower edge at $k\cdot48$\,nm, and a wire placed by eye failed DRC.
+\field{Fix} Each layer's legal tracks are drawn as markers, read from the DRC deck (fin, gate, M4--M7) and the tech/library LEF (M1--M3), not typed in. Checked against the library: every fin, gate and minimum-width M2 of the 212 cells lies on its line. M1 is the exception: the cells draw M1 on the gate lines, not on the LEF's router tracks. Commit \file{4d80f31}; table in \file{docs/KEYS.md}.
+
+\entry{T5. OLSim: bus pins of extracted cells}{2026-10-18}{t5}{Simulation}
+\field{Symptom} Post-layout simulation of any cell with bus pins failed: ``layout has pin(s) A\_1\_ \ldots\ that its schematic does not''.
+\field{Cause} PEX writes bus pins as \texttt{A\_1\_}; OLSim matched them against the raw \texttt{A[1]}.
+\field{Fix} Pin names are normalized before matching. Commit \file{b7d291b}.
+
+\entry{T6. Caps Lock turned copy into arcs}{2026-10-28}{t6}{Schematic}
+\field{Symptom} \texttt{c} (copy) drew arcs and circles in xschem.
+\field{Cause} Caps Lock was on in the VM session, so \texttt{c} arrived as \texttt{C}: xschem's ``place arc'' (Ctrl+C: circle). Every lowercase OpenLayout binding (\texttt{x}, \texttt{p}, \texttt{l}, \texttt{r}, \texttt{i}) missed too.
+\field{Fix} A key pressed with Caps Lock is re-issued without it, so the letter's case follows Shift alone. Before the fix a scripted Caps Lock copy added no instance (3 $\to$ 3); after it, one (3 $\to$ 4). Commit \file{fc1e481}.
+
+% =====================================================================
+\section*{Open items}
+\begin{itemize}
+  \item Windowed PEX on narrow standard cells (M1): wider windows on the ring oscillator.
+  \item Simulation at scale: a subcircuit per kind of window. ngspice did not reach the transient of the $64\times80$ netlist in 31\,min.
+  \item Periphery and routing windows (rarely alike): measure solve count and accuracy on a placed-and-routed block.
+  \item Post-layout delays flat vs.\ windowed on a block that switches its outputs.
+  \item Release 0.4.0-alpha.3 from the CHANGELOG's \emph{Unreleased} section.
+\end{itemize}
+
+\topicindex
+
+\end{document}

@@ -1,7 +1,7 @@
 # Windowed (hierarchical) PEX in OpenLayout: validation report, 2026-10-15
 
-Data, scripts, netlists and logs: `~/papers/notebook/data/hier-pex/` on the VM (`openlayout-hier-pex.diff`
-is the uncommitted OpenLayout change). Cell: SRAMCIMsbc (10T compute-in-memory bit cell, 0.54 × 0.27 µm),
+Data, scripts, netlists and logs: `~/papers/notebook/openlayout/data/hier-pex/` on the VM (`openlayout-hier-pex.diff`
+is the OpenLayout change before it was committed as 64b50e2). Cell: SRAMCIMsbc (10T compute-in-memory bit cell, 0.54 × 0.27 µm),
 tiled with odd rows mirrored. Labelled tiles (`scripts/tile2.py`) carry WL_r, BL_c / BLB_c, XB_r_c,
 P_r_c and one VDD_k / VSS_k per rail, so every cell is powered and can be probed.
 
