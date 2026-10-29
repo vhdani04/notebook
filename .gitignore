@@ -1,7 +1,7 @@
 # LaTeX build products (the PDF is built by GitHub Actions and attached to the `latest` release)
 *.aux
 *.log
-!data/**/*.log
+!*/data/**/*.log
 *.out
 *.toc
 *.lof
